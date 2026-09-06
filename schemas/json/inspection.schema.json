@@ -1,0 +1,454 @@
+{
+  "$defs": {
+    "Declaration": {
+      "description": "A single declaration extracted from a product label image.\n\nRepresents one mandatory or optional field that Legal Metrology\nrules require on packaged commodities.",
+      "examples": [
+        {
+          "bbox": [
+            120,
+            340,
+            280,
+            370
+          ],
+          "confidence": 0.96,
+          "image_id": "IMG-01",
+          "normalized_value": "500 g",
+          "panel": "front",
+          "raw_text": "Net Wt. 500g",
+          "status": "normalized",
+          "type": "NET_QUANTITY"
+        }
+      ],
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/DeclarationType",
+          "description": "The Legal Metrology declaration type."
+        },
+        "raw_text": {
+          "description": "Verbatim OCR text as read from the label.",
+          "title": "Raw Text",
+          "type": "string"
+        },
+        "normalized_value": {
+          "default": "",
+          "description": "Cleaned / standardized value after NLP processing.",
+          "title": "Normalized Value",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 0.0,
+          "description": "OCR + NER extraction confidence score.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "bbox": {
+          "description": "Bounding box [x_min, y_min, x_max, y_max] in pixel coords.",
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "title": "Bbox",
+          "type": "array"
+        },
+        "image_id": {
+          "default": "",
+          "description": "Reference to the source image (e.g. IMG-01).",
+          "title": "Image Id",
+          "type": "string"
+        },
+        "panel": {
+          "default": "",
+          "description": "Label panel where this declaration was found (front, back, side, etc.).",
+          "title": "Panel",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/DeclarationStatus",
+          "default": "extracted",
+          "description": "Current processing status of this declaration."
+        }
+      },
+      "required": [
+        "type",
+        "raw_text"
+      ],
+      "title": "Declaration",
+      "type": "object"
+    },
+    "DeclarationStatus": {
+      "description": "Processing status of a single declaration extraction.",
+      "enum": [
+        "extracted",
+        "normalized",
+        "validated",
+        "failed"
+      ],
+      "title": "DeclarationStatus",
+      "type": "string"
+    },
+    "DeclarationType": {
+      "description": "Legal Metrology declaration types per the Packaged Commodities Rules.",
+      "enum": [
+        "PRODUCT_NAME",
+        "MANUFACTURER",
+        "PACKER",
+        "IMPORTER",
+        "COUNTRY_OF_ORIGIN",
+        "NET_QUANTITY",
+        "MRP",
+        "MANUFACTURE_OR_PACK_DATE",
+        "BEST_BEFORE_OR_USE_BY",
+        "CONSUMER_CARE",
+        "UNIT_SALE_PRICE",
+        "OTHER_DECLARATION"
+      ],
+      "title": "DeclarationType",
+      "type": "string"
+    },
+    "EvidenceItem": {
+      "description": "A single piece of visual / OCR evidence backing a finding.",
+      "properties": {
+        "image_id": {
+          "description": "Source image reference (e.g. IMG-02).",
+          "title": "Image Id",
+          "type": "string"
+        },
+        "bbox": {
+          "description": "Bounding box [x_min, y_min, x_max, y_max].",
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "title": "Bbox",
+          "type": "array"
+        },
+        "ocr_text": {
+          "default": "",
+          "description": "OCR text extracted from this region.",
+          "title": "Ocr Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "image_id"
+      ],
+      "title": "EvidenceItem",
+      "type": "object"
+    },
+    "Finding": {
+      "description": "Result of evaluating one Legal Metrology rule against a product.\n\nDesign law: AI produces findings; inspectors verify them.\nA FAIL status is a recommendation for review, never a legal\ndetermination on its own.",
+      "examples": [
+        {
+          "ai_model_versions": [
+            "ocr-v2.1",
+            "ner-v1.3"
+          ],
+          "confidence": 0.94,
+          "description": "Product name not found on the label.",
+          "evidence": [
+            {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "image_id": "IMG-02",
+              "ocr_text": ""
+            }
+          ],
+          "finding_id": "F-0001",
+          "inspector": {
+            "comment": "",
+            "decision": "pending"
+          },
+          "rule_id": "LM-0001",
+          "rule_version": "1.0.0",
+          "status": "FAIL"
+        }
+      ],
+      "properties": {
+        "finding_id": {
+          "description": "Unique finding identifier (e.g. F-0001).",
+          "pattern": "^F-\\d{4}$",
+          "title": "Finding Id",
+          "type": "string"
+        },
+        "rule_id": {
+          "description": "The rule that was evaluated.",
+          "pattern": "^LM-\\d{4}$",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/FindingStatus",
+          "description": "Outcome of the rule evaluation."
+        },
+        "description": {
+          "description": "Human-readable explanation of the finding.",
+          "title": "Description",
+          "type": "string"
+        },
+        "evidence": {
+          "description": "Visual / OCR evidence supporting this finding.",
+          "items": {
+            "$ref": "#/$defs/EvidenceItem"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "confidence": {
+          "default": 0.0,
+          "description": "AI confidence in this finding.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "rule_version": {
+          "default": "",
+          "description": "Version of the rule that was applied.",
+          "title": "Rule Version",
+          "type": "string"
+        },
+        "ai_model_versions": {
+          "description": "Model versions used (e.g. ['ocr-v2.1', 'ner-v1.3']).",
+          "items": {
+            "type": "string"
+          },
+          "title": "Ai Model Versions",
+          "type": "array"
+        },
+        "inspector": {
+          "$ref": "#/$defs/InspectorDecision",
+          "description": "Inspector's human-in-the-loop decision."
+        }
+      },
+      "required": [
+        "finding_id",
+        "rule_id",
+        "status",
+        "description"
+      ],
+      "title": "Finding",
+      "type": "object"
+    },
+    "FindingStatus": {
+      "description": "Outcome of evaluating one rule against one product.",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "UNCERTAIN",
+        "N/A"
+      ],
+      "title": "FindingStatus",
+      "type": "string"
+    },
+    "ImageQuality": {
+      "description": "Image quality assessment result.",
+      "enum": [
+        "pass",
+        "marginal",
+        "fail"
+      ],
+      "title": "ImageQuality",
+      "type": "string"
+    },
+    "InspectionImage": {
+      "description": "One image submitted for an inspection.",
+      "properties": {
+        "id": {
+          "description": "Image identifier (e.g. IMG-01).",
+          "title": "Id",
+          "type": "string"
+        },
+        "path": {
+          "description": "Storage path or URI for the image.",
+          "title": "Path",
+          "type": "string"
+        },
+        "panel": {
+          "default": "front",
+          "description": "Which label panel (front, back, side, top, bottom).",
+          "title": "Panel",
+          "type": "string"
+        },
+        "quality": {
+          "$ref": "#/$defs/ImageQuality",
+          "default": "pass",
+          "description": "Quality gate result."
+        }
+      },
+      "required": [
+        "id",
+        "path"
+      ],
+      "title": "InspectionImage",
+      "type": "object"
+    },
+    "InspectionStatus": {
+      "description": "Overall inspection lifecycle status.",
+      "enum": [
+        "draft",
+        "processing",
+        "review",
+        "approved",
+        "rejected"
+      ],
+      "title": "InspectionStatus",
+      "type": "string"
+    },
+    "InspectionTrace": {
+      "description": "Ordered pipeline steps executed during this inspection.",
+      "properties": {
+        "steps": {
+          "description": "Pipeline steps in execution order.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Steps",
+          "type": "array"
+        }
+      },
+      "title": "InspectionTrace",
+      "type": "object"
+    },
+    "InspectorDecision": {
+      "description": "Inspector's final call on a finding \u2014 human-in-the-loop.",
+      "properties": {
+        "decision": {
+          "default": "pending",
+          "description": "Inspector verdict: pending | confirmed | overridden.",
+          "title": "Decision",
+          "type": "string"
+        },
+        "comment": {
+          "default": "",
+          "description": "Inspector's free-text note.",
+          "title": "Comment",
+          "type": "string"
+        }
+      },
+      "title": "InspectorDecision",
+      "type": "object"
+    },
+    "ProductContext": {
+      "description": "Product metadata supplied by the inspector or inferred.",
+      "properties": {
+        "category": {
+          "default": "",
+          "description": "Product category (food, cosmetics, etc.).",
+          "title": "Category",
+          "type": "string"
+        },
+        "package_type": {
+          "default": "",
+          "description": "Package type (bottle, box, sachet, etc.).",
+          "title": "Package Type",
+          "type": "string"
+        },
+        "import_status": {
+          "default": "",
+          "description": "Import status (domestic, imported, etc.).",
+          "title": "Import Status",
+          "type": "string"
+        }
+      },
+      "title": "ProductContext",
+      "type": "object"
+    }
+  },
+  "description": "Top-level inspection document \u2014 the complete record of one\nproduct-label compliance check.\n\nTies together images, extracted declarations, applied rules,\nfindings, and the inspector's final review.",
+  "examples": [
+    {
+      "declarations": [],
+      "findings": [],
+      "images": [
+        {
+          "id": "IMG-01",
+          "panel": "front",
+          "path": "/uploads/ins-001/front.jpg",
+          "quality": "pass"
+        }
+      ],
+      "inspection_id": "INS-001",
+      "overall_status": "review",
+      "product_context": {
+        "category": "food",
+        "import_status": "domestic",
+        "package_type": "box"
+      },
+      "rule_version": "1.0.0",
+      "trace": {
+        "steps": [
+          "quality",
+          "ocr",
+          "extract",
+          "context",
+          "rules",
+          "review"
+        ]
+      }
+    }
+  ],
+  "properties": {
+    "inspection_id": {
+      "description": "Unique inspection identifier (e.g. INS-001).",
+      "pattern": "^INS-\\d{3,}$",
+      "title": "Inspection Id",
+      "type": "string"
+    },
+    "images": {
+      "description": "Submitted label images.",
+      "items": {
+        "$ref": "#/$defs/InspectionImage"
+      },
+      "title": "Images",
+      "type": "array"
+    },
+    "product_context": {
+      "$ref": "#/$defs/ProductContext",
+      "description": "Product category and packaging metadata."
+    },
+    "declarations": {
+      "description": "Extracted declarations from OCR + NER.",
+      "items": {
+        "$ref": "#/$defs/Declaration"
+      },
+      "title": "Declarations",
+      "type": "array"
+    },
+    "rule_version": {
+      "default": "",
+      "description": "Rule corpus version applied to this inspection.",
+      "title": "Rule Version",
+      "type": "string"
+    },
+    "findings": {
+      "description": "Rule evaluation results.",
+      "items": {
+        "$ref": "#/$defs/Finding"
+      },
+      "title": "Findings",
+      "type": "array"
+    },
+    "overall_status": {
+      "$ref": "#/$defs/InspectionStatus",
+      "default": "review",
+      "description": "Current inspection lifecycle status."
+    },
+    "trace": {
+      "$ref": "#/$defs/InspectionTrace",
+      "description": "Pipeline execution trace for auditability."
+    }
+  },
+  "required": [
+    "inspection_id"
+  ],
+  "title": "Inspection",
+  "type": "object"
+}

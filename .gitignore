@@ -1,9 +1,43 @@
-# Flutter 
-.dart_tool/ 
-.flutter-plugins 
-.flutter-plugins-dependencies 
-.packages 
-build/ 
-.idea/ 
-*.iml 
-.env 
+# =========================
+# APEX — LabelSure .gitignore
+# =========================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+*.egg
+.venv/
+venv/
+
+# --- Flutter ---
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+
+# --- Node / React ---
+node_modules/
+dashboard/build/
+dashboard/dist/
+
+# --- IDE ---
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# --- Environment ---
+.env
+.env.*
+!.env.example
+
+# --- Docker ---
+pgdata/
+
+# --- OS ---
+.DS_Store
+Thumbs.db

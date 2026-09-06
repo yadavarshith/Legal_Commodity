@@ -1,0 +1,164 @@
+{
+  "$defs": {
+    "RuleApplicability": {
+      "description": "When / to what product categories this rule applies.",
+      "properties": {
+        "category": {
+          "description": "Product category (e.g. 'food', 'cosmetics', 'all').",
+          "title": "Category",
+          "type": "string"
+        },
+        "conditions": {
+          "description": "Additional applicability conditions (e.g. 'imported', 'weight > 10kg').",
+          "items": {
+            "type": "string"
+          },
+          "title": "Conditions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "category"
+      ],
+      "title": "RuleApplicability",
+      "type": "object"
+    },
+    "RuleSeverity": {
+      "description": "How critical a rule violation is.",
+      "enum": [
+        "critical",
+        "major",
+        "minor",
+        "info"
+      ],
+      "title": "RuleSeverity",
+      "type": "string"
+    },
+    "RuleValidation": {
+      "description": "How the rule engine should check this rule.",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/ValidationType",
+          "description": "Validation strategy."
+        },
+        "parameters": {
+          "additionalProperties": true,
+          "description": "Strategy-specific parameters.",
+          "title": "Parameters",
+          "type": "object"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "RuleValidation",
+      "type": "object"
+    },
+    "ValidationType": {
+      "description": "Kind of validation the rule engine runs.",
+      "enum": [
+        "presence",
+        "format",
+        "range",
+        "cross_field",
+        "custom"
+      ],
+      "title": "ValidationType",
+      "type": "string"
+    }
+  },
+  "description": "A single Legal Metrology rule, versioned and hot-reloadable.\n\nRule IDs follow the pattern LM-XXXX.  Each rule references the\nexact DCA clause it encodes and carries validity dates so the\nengine can apply the correct rule set for any inspection date.",
+  "examples": [
+    {
+      "applicability": {
+        "category": "all",
+        "conditions": []
+      },
+      "clause_reference": "Rule 6(1)(a)",
+      "effective_from": "2011-01-01",
+      "effective_to": null,
+      "requirement": "Every package must bear the name of the commodity.",
+      "rule_id": "LM-0001",
+      "rule_version": "1.0.0",
+      "severity": "critical",
+      "source": "verified DCA rule document",
+      "validation": {
+        "parameters": {
+          "field": "PRODUCT_NAME"
+        },
+        "type": "presence"
+      }
+    }
+  ],
+  "properties": {
+    "rule_id": {
+      "description": "Unique rule identifier (e.g. LM-0001).",
+      "pattern": "^LM-\\d{4}$",
+      "title": "Rule Id",
+      "type": "string"
+    },
+    "rule_version": {
+      "description": "Semantic version of this rule definition.",
+      "title": "Rule Version",
+      "type": "string"
+    },
+    "clause_reference": {
+      "description": "DCA / Legal Metrology Act clause (e.g. 'Rule 6(1)(a)').",
+      "title": "Clause Reference",
+      "type": "string"
+    },
+    "requirement": {
+      "description": "Human-readable statement of what the rule requires.",
+      "title": "Requirement",
+      "type": "string"
+    },
+    "applicability": {
+      "$ref": "#/$defs/RuleApplicability",
+      "description": "Product categories and conditions where this rule applies."
+    },
+    "validation": {
+      "$ref": "#/$defs/RuleValidation",
+      "description": "Validation type and parameters for the rule engine."
+    },
+    "severity": {
+      "$ref": "#/$defs/RuleSeverity",
+      "description": "Violation severity level."
+    },
+    "effective_from": {
+      "description": "ISO-8601 date when this rule becomes effective.",
+      "title": "Effective From",
+      "type": "string"
+    },
+    "effective_to": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "ISO-8601 date when this rule expires (null = still active).",
+      "title": "Effective To"
+    },
+    "source": {
+      "default": "verified DCA rule document",
+      "description": "Provenance of this rule definition.",
+      "title": "Source",
+      "type": "string"
+    }
+  },
+  "required": [
+    "rule_id",
+    "rule_version",
+    "clause_reference",
+    "requirement",
+    "applicability",
+    "validation",
+    "severity",
+    "effective_from"
+  ],
+  "title": "RuleConfig",
+  "type": "object"
+}

@@ -1,0 +1,161 @@
+{
+  "$defs": {
+    "EvidenceItem": {
+      "description": "A single piece of visual / OCR evidence backing a finding.",
+      "properties": {
+        "image_id": {
+          "description": "Source image reference (e.g. IMG-02).",
+          "title": "Image Id",
+          "type": "string"
+        },
+        "bbox": {
+          "description": "Bounding box [x_min, y_min, x_max, y_max].",
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "title": "Bbox",
+          "type": "array"
+        },
+        "ocr_text": {
+          "default": "",
+          "description": "OCR text extracted from this region.",
+          "title": "Ocr Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "image_id"
+      ],
+      "title": "EvidenceItem",
+      "type": "object"
+    },
+    "FindingStatus": {
+      "description": "Outcome of evaluating one rule against one product.",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "UNCERTAIN",
+        "N/A"
+      ],
+      "title": "FindingStatus",
+      "type": "string"
+    },
+    "InspectorDecision": {
+      "description": "Inspector's final call on a finding \u2014 human-in-the-loop.",
+      "properties": {
+        "decision": {
+          "default": "pending",
+          "description": "Inspector verdict: pending | confirmed | overridden.",
+          "title": "Decision",
+          "type": "string"
+        },
+        "comment": {
+          "default": "",
+          "description": "Inspector's free-text note.",
+          "title": "Comment",
+          "type": "string"
+        }
+      },
+      "title": "InspectorDecision",
+      "type": "object"
+    }
+  },
+  "description": "Result of evaluating one Legal Metrology rule against a product.\n\nDesign law: AI produces findings; inspectors verify them.\nA FAIL status is a recommendation for review, never a legal\ndetermination on its own.",
+  "examples": [
+    {
+      "ai_model_versions": [
+        "ocr-v2.1",
+        "ner-v1.3"
+      ],
+      "confidence": 0.94,
+      "description": "Product name not found on the label.",
+      "evidence": [
+        {
+          "bbox": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "image_id": "IMG-02",
+          "ocr_text": ""
+        }
+      ],
+      "finding_id": "F-0001",
+      "inspector": {
+        "comment": "",
+        "decision": "pending"
+      },
+      "rule_id": "LM-0001",
+      "rule_version": "1.0.0",
+      "status": "FAIL"
+    }
+  ],
+  "properties": {
+    "finding_id": {
+      "description": "Unique finding identifier (e.g. F-0001).",
+      "pattern": "^F-\\d{4}$",
+      "title": "Finding Id",
+      "type": "string"
+    },
+    "rule_id": {
+      "description": "The rule that was evaluated.",
+      "pattern": "^LM-\\d{4}$",
+      "title": "Rule Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/FindingStatus",
+      "description": "Outcome of the rule evaluation."
+    },
+    "description": {
+      "description": "Human-readable explanation of the finding.",
+      "title": "Description",
+      "type": "string"
+    },
+    "evidence": {
+      "description": "Visual / OCR evidence supporting this finding.",
+      "items": {
+        "$ref": "#/$defs/EvidenceItem"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "confidence": {
+      "default": 0.0,
+      "description": "AI confidence in this finding.",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "rule_version": {
+      "default": "",
+      "description": "Version of the rule that was applied.",
+      "title": "Rule Version",
+      "type": "string"
+    },
+    "ai_model_versions": {
+      "description": "Model versions used (e.g. ['ocr-v2.1', 'ner-v1.3']).",
+      "items": {
+        "type": "string"
+      },
+      "title": "Ai Model Versions",
+      "type": "array"
+    },
+    "inspector": {
+      "$ref": "#/$defs/InspectorDecision",
+      "description": "Inspector's human-in-the-loop decision."
+    }
+  },
+  "required": [
+    "finding_id",
+    "rule_id",
+    "status",
+    "description"
+  ],
+  "title": "Finding",
+  "type": "object"
+}

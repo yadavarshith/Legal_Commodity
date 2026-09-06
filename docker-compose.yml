@@ -1,0 +1,50 @@
+# APEX — LabelSure
+# docker-compose.yml — local dev stack
+# Wires: PostgreSQL + FastAPI service
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: labelsure
+      POSTGRES_PASSWORD: labelsure_dev
+      POSTGRES_DB: labelsure
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U labelsure"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: "postgresql://labelsure:labelsure_dev@db:5432/labelsure"
+      PYTHONPATH: /app
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # Mount source for hot-reload during development.
+      - ./api:/app/api
+      - ./schemas:/app/schemas
+      - ./rules:/app/rules
+    command: >
+      uvicorn api.main:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+      --reload-dir /app/api
+      --reload-dir /app/schemas
+
+volumes:
+  pgdata:

@@ -1,0 +1,110 @@
+{
+  "$defs": {
+    "DeclarationStatus": {
+      "description": "Processing status of a single declaration extraction.",
+      "enum": [
+        "extracted",
+        "normalized",
+        "validated",
+        "failed"
+      ],
+      "title": "DeclarationStatus",
+      "type": "string"
+    },
+    "DeclarationType": {
+      "description": "Legal Metrology declaration types per the Packaged Commodities Rules.",
+      "enum": [
+        "PRODUCT_NAME",
+        "MANUFACTURER",
+        "PACKER",
+        "IMPORTER",
+        "COUNTRY_OF_ORIGIN",
+        "NET_QUANTITY",
+        "MRP",
+        "MANUFACTURE_OR_PACK_DATE",
+        "BEST_BEFORE_OR_USE_BY",
+        "CONSUMER_CARE",
+        "UNIT_SALE_PRICE",
+        "OTHER_DECLARATION"
+      ],
+      "title": "DeclarationType",
+      "type": "string"
+    }
+  },
+  "description": "A single declaration extracted from a product label image.\n\nRepresents one mandatory or optional field that Legal Metrology\nrules require on packaged commodities.",
+  "examples": [
+    {
+      "bbox": [
+        120,
+        340,
+        280,
+        370
+      ],
+      "confidence": 0.96,
+      "image_id": "IMG-01",
+      "normalized_value": "500 g",
+      "panel": "front",
+      "raw_text": "Net Wt. 500g",
+      "status": "normalized",
+      "type": "NET_QUANTITY"
+    }
+  ],
+  "properties": {
+    "type": {
+      "$ref": "#/$defs/DeclarationType",
+      "description": "The Legal Metrology declaration type."
+    },
+    "raw_text": {
+      "description": "Verbatim OCR text as read from the label.",
+      "title": "Raw Text",
+      "type": "string"
+    },
+    "normalized_value": {
+      "default": "",
+      "description": "Cleaned / standardized value after NLP processing.",
+      "title": "Normalized Value",
+      "type": "string"
+    },
+    "confidence": {
+      "default": 0.0,
+      "description": "OCR + NER extraction confidence score.",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "bbox": {
+      "description": "Bounding box [x_min, y_min, x_max, y_max] in pixel coords.",
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "title": "Bbox",
+      "type": "array"
+    },
+    "image_id": {
+      "default": "",
+      "description": "Reference to the source image (e.g. IMG-01).",
+      "title": "Image Id",
+      "type": "string"
+    },
+    "panel": {
+      "default": "",
+      "description": "Label panel where this declaration was found (front, back, side, etc.).",
+      "title": "Panel",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/DeclarationStatus",
+      "default": "extracted",
+      "description": "Current processing status of this declaration."
+    }
+  },
+  "required": [
+    "type",
+    "raw_text"
+  ],
+  "title": "Declaration",
+  "type": "object"
+}

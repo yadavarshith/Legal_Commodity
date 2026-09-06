@@ -1,0 +1,62 @@
+[
+  {
+    "rule_id": "LM-0001",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 6(1)(a) — Legal Metrology (Packaged Commodities) Rules, 2011",
+    "requirement": "Every package shall bear the name of the commodity contained in it.",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "presence", "parameters": { "field": "PRODUCT_NAME" } },
+    "severity": "critical",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "verified DCA rule document"
+  },
+  {
+    "rule_id": "LM-0002",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 6(1)(b) — Legal Metrology (Packaged Commodities) Rules, 2011",
+    "requirement": "Every package shall bear the name and address of the manufacturer or packer or importer.",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "presence", "parameters": { "field": "MANUFACTURER" } },
+    "severity": "critical",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "verified DCA rule document"
+  },
+  {
+    "rule_id": "LM-0003",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 6(1)(c) — Legal Metrology (Packaged Commodities) Rules, 2011",
+    "requirement": "Every package shall bear the net quantity of the commodity in terms of standard unit of weight or measure.",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "presence", "parameters": { "field": "NET_QUANTITY" } },
+    "severity": "critical",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "verified DCA rule document"
+  },
+  {
+    "rule_id": "LM-0004",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 6(1)(d) — Legal Metrology (Packaged Commodities) Rules, 2011",
+    "requirement": "Every package shall bear the maximum retail price (MRP) inclusive of all taxes.",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "presence", "parameters": { "field": "MRP" } },
+    "severity": "critical",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "verified DCA rule document"
+  },
+  {
+    "rule_id": "LM-0005",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 6(1)(e) — Legal Metrology (Packaged Commodities) Rules, 2011",
+    "requirement": "Every package shall bear the month and year of manufacture or packing or import.",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "presence", "parameters": { "field": "MANUFACTURE_OR_PACK_DATE" } },
+    "severity": "major",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "verified DCA rule document"
+  }
+]
