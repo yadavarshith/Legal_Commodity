@@ -8,15 +8,26 @@ container builds and the schema imports work.
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Header, HTTPException, status, Depends
+from sqlalchemy.orm import Session
+from database import SessionLocal, get_db
+from models import InspectorDecision as DecisionModel
 from schemas import (
-    Declaration,
-    DeclarationType,
-    Finding,
-    FindingStatus,
-    Inspection,
-    InspectionStatus,
-    RuleConfig,
+    Declaration, DeclarationType, Finding, FindingStatus, Inspection, InspectionStatus, RuleConfig,
+    InspectorDecisionRequest
 )
+
+# ... (rest of main.py, append endpoint)
+@app.post("/inspections/{inspection_id}/review")
+async def review_finding(inspection_id: str, req: InspectorDecisionRequest, db: Session = Depends(get_db)):
+    db_decision = DecisionModel(
+        inspection_id=inspection_id,
+        finding_id=req.finding_id,
+        decision=req.decision,
+        reason=req.reason
+    )
+    db.add(db_decision)
+    db.commit()
+    return {"status": "recorded"}
 
 # Temporary simple auth
 API_KEY = "dev-key"

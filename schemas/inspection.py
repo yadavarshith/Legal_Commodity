@@ -50,15 +50,11 @@ class ProductContext(BaseModel):
     )
 
 
-class InspectionTrace(BaseModel):
-    """Ordered pipeline steps executed during this inspection."""
+class InspectorDecisionRequest(BaseModel):
+    finding_id: str
+    decision: str
+    reason: Optional[str] = None
 
-    steps: List[str] = Field(
-        default_factory=lambda: [
-            "quality", "ocr", "extract", "context", "rules", "review"
-        ],
-        description="Pipeline steps in execution order.",
-    )
 
 
 class Inspection(BaseModel):
