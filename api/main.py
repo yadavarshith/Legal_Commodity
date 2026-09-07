@@ -1,12 +1,11 @@
 """
 APEX — LabelSure API entry point.
-
-Minimal FastAPI app — no endpoints yet.  Exists to prove the
-container builds and the schema imports work.
+AI-assisted Legal Metrology (Packaged Commodities) compliance and inspection platform.
 """
 
 from contextlib import asynccontextmanager
 import json
+import logging
 import os
 from pathlib import Path
 from typing import List, Dict, Any, Optional
@@ -25,6 +24,9 @@ from schemas import (
     InspectorDecisionRequest, ProductContext
 )
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("labelsure.pipeline")
+
 API_KEY = "dev-key"
 
 async def verify_key(x_api_key: str = Header(...)):
@@ -42,10 +44,11 @@ async def lifespan(app: FastAPI):
     try:
         init_db()
     except Exception as exc:
-        import logging
         logging.getLogger("uvicorn.error").warning("init_db failed: %s", exc)
     yield
 
+
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="APEX — LabelSure API & Web Application",
@@ -55,6 +58,15 @@ app = FastAPI(
     ),
     version="0.1.0",
     lifespan=lifespan,
+)
+
+# Enable CORS for Flutter Web & Mobile clients
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Ensure static & upload directories exist
@@ -84,7 +96,7 @@ async def upload_and_scan_label(
 ):
     """
     Accept an uploaded package label image file, run OCR, extract Legal Metrology declarations,
-    and evaluate compliance against Rule 6(1) of PCR 2011.
+    and evaluate compliance against PCR 2011 & Legal Metrology Act, 2009.
     """
     from .processing.ocr import extract_text
 
@@ -97,32 +109,67 @@ async def upload_and_scan_label(
         content = await file.read()
         buffer.write(content)
 
+    file_size = save_path.stat().st_size
     image_url = f"/uploads/{unique_name}"
-
-    # Run OCR on saved image
-    ocr_results = extract_text(str(save_path))
     image_id = f"IMG-{unique_name[:8]}"
 
-    # Extract Declarations
-    declarations = extract_declarations(ocr_results, image_id)
+    # Stage 1: Image Upload / Capture
+    logger.info("================ PIPELINE EXECUTION TRACE ================")
+    logger.info("[TRACE Stage 1: Image Upload] Received file='%s', saved to='%s' (%d bytes)", file.filename, save_path, file_size)
 
-    # Build Context
+    # Stage 2: OCR Output
+    try:
+        ocr_results = extract_text(str(save_path))
+    except Exception as e:
+        logger.error("[TRACE Stage 2 ERROR] OCR engine failed: %s", e)
+        ocr_results = []
+    
+    logger.info("[TRACE Stage 2: OCR Output] Extracted %d raw text blocks from image", len(ocr_results))
+    for idx, b in enumerate(ocr_results[:5]):
+        logger.info("   Block %d: text='%s' | bbox=%s | conf=%.2f", idx + 1, b.get('text'), b.get('bbox'), b.get('confidence', 0))
+    if len(ocr_results) > 5:
+        logger.info("   ... and %d more text blocks", len(ocr_results) - 5)
+
+    # Stage 3: Declaration Extraction
+    try:
+        declarations = extract_declarations(ocr_results, image_id)
+    except Exception as e:
+        logger.error("[TRACE Stage 3 ERROR] Declaration extractor failed: %s", e)
+        declarations = []
+
+    logger.info("[TRACE Stage 3: Declarations] Extracted %d structured declarations", len(declarations))
+    for d in declarations:
+        logger.info("   Decl [%s]: normalized='%s' (raw='%s', conf=%.2f)", d.type.value, d.normalized_value, d.raw_text, d.confidence)
+
+    # Stage 4: Rule Evaluation
     context = ProductContext(
         category=category,
         package_type=package_type,
         import_status=import_status
     )
-
-    # Run Rule Engine
     rules_dir = Path(__file__).parent.parent / "rules"
     engine = RuleEngine(rules_dir=str(rules_dir))
-    findings = engine.evaluate(declarations, context)
+    
+    try:
+        findings = engine.evaluate(declarations, context)
+    except Exception as e:
+        logger.error("[TRACE Stage 4 ERROR] Rule engine evaluation failed: %s", e)
+        findings = []
 
+    logger.info("[TRACE Stage 4: Rule Evaluation] Evaluated %d rules against declarations", len(findings))
+    for f in findings:
+        logger.info("   Finding [%s | %s]: status=%s | desc='%s'", f.finding_id, f.rule_id, f.status.value, f.description)
+
+    # Stage 5: Results / Overall Status Rendering
     has_fail = any(f.status == FindingStatus.FAIL for f in findings)
-    overall_status = InspectionStatus.REVIEW if has_fail else InspectionStatus.PASS
+    overall_status = InspectionStatus.REVIEW if has_fail else InspectionStatus.APPROVED
+    inspection_id = f"INS-{os.urandom(3).hex().upper()}"
+
+    logger.info("[TRACE Stage 5: Render Response] inspection_id='%s' | overall_status='%s'", inspection_id, overall_status.value)
+    logger.info("==========================================================")
 
     return {
-        "inspection_id": f"INS-{os.urandom(3).hex().upper()}",
+        "inspection_id": inspection_id,
         "image_url": image_url,
         "filename": file.filename,
         "context": context.model_dump(),
@@ -146,12 +193,10 @@ async def serve_web_app():
 
 @app.get("/rules")
 async def get_rules():
-    """Return legal metrology seed rules."""
-    rules_path = Path(__file__).parent.parent / "rules" / "seed_rules.json"
-    if rules_path.exists():
-        with open(rules_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
+    """Return legal metrology rules dynamically loaded from rules directory."""
+    rules_dir = Path(__file__).parent.parent / "rules"
+    engine = RuleEngine(rules_dir=str(rules_dir))
+    return [r.model_dump() for r in engine.rules]
 
 
 @app.post("/analyze")
@@ -164,14 +209,12 @@ async def analyze_package(req: AnalyzeRequest):
         import_status=req.import_status
     )
     
-    # Initialize rule engine with rules directory
     rules_dir = Path(__file__).parent.parent / "rules"
     engine = RuleEngine(rules_dir=str(rules_dir))
     findings = engine.evaluate(declarations, context)
 
-    # Determine overall status
     has_fail = any(f.status == FindingStatus.FAIL for f in findings)
-    overall_status = InspectionStatus.REVIEW if has_fail else InspectionStatus.PASS
+    overall_status = InspectionStatus.REVIEW if has_fail else InspectionStatus.APPROVED
 
     return {
         "inspection_id": f"INS-{os.urandom(3).hex().upper()}",
@@ -186,11 +229,16 @@ async def analyze_package(req: AnalyzeRequest):
 @app.get("/stats")
 async def get_stats():
     """Return dashboard analytics and compliance summary."""
+    rules_dir = Path(__file__).parent.parent / "rules"
+    engine = RuleEngine(rules_dir=str(rules_dir))
+    total_rules = len(engine.rules)
+
     return {
         "total_inspections": 142,
         "compliance_rate": "84.5%",
         "flagged_cases": 22,
         "pending_reviews": 5,
+        "total_rules_in_corpus": total_rules,
         "category_breakdown": {
             "food": 65,
             "cosmetics": 34,
@@ -232,24 +280,3 @@ async def health():
             "Inspection",
         ],
     }
-
-
-@app.post("/inspections", response_model=Inspection, dependencies=[Depends(verify_key)])
-async def create_inspection():
-    """Stub POST /inspections endpoint with mocked response."""
-    inspection = Inspection(
-        inspection_id="INS-002",
-        images=[{"id": "IMG-01", "path": "local/path/front.jpg", "panel": "front", "quality": "pass"}],
-        overall_status=InspectionStatus.REVIEW,
-        findings=[
-            Finding(
-                finding_id="F-0001",
-                rule_id="LM-0001",
-                status=FindingStatus.FAIL,
-                description="Mocked: Product name not detected in OCR.",
-                confidence=0.85
-            )
-        ]
-    )
-    return inspection
-

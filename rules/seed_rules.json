@@ -1,72 +1,194 @@
 [
   {
-    "rule_id": "LM-0001", "rule_version": "1.0.0", "clause_reference": "Rule 6(1)(a)",
-    "requirement": "Name of the commodity.",
+    "rule_id": "LM-0001",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 6(1)(a)",
+    "requirement": "Common or Generic Name of the Commodity on Principal Display Panel.",
     "applicability": { "category": "all", "conditions": [] },
     "validation": { "type": "presence", "parameters": { "field": "PRODUCT_NAME" } },
-    "severity": "critical", "effective_from": "2011-01-01", "effective_to": null, "source": "verified DCA rule document"
+    "severity": "critical",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "Legal Metrology (Packaged Commodities) Rules, 2011"
   },
   {
-    "rule_id": "LM-0002", "rule_version": "1.0.0", "clause_reference": "Rule 6(1)(b)",
-    "requirement": "Name and address of manufacturer/packer/importer.",
+    "rule_id": "LM-0002",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 6(1)(b)",
+    "requirement": "Complete Name and Postal Address of Manufacturer / Packer / Importer.",
     "applicability": { "category": "all", "conditions": [] },
     "validation": { "type": "presence", "parameters": { "field": "MANUFACTURER" } },
-    "severity": "critical", "effective_from": "2011-01-01", "effective_to": null, "source": "verified DCA rule document"
+    "severity": "critical",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "Legal Metrology (Packaged Commodities) Rules, 2011"
   },
   {
-    "rule_id": "LM-0003", "rule_version": "1.0.0", "clause_reference": "Rule 6(1)(c)",
-    "requirement": "Net quantity.",
-    "applicability": { "category": "all", "conditions": [] },
-    "validation": { "type": "presence", "parameters": { "field": "NET_QUANTITY" } },
-    "severity": "critical", "effective_from": "2011-01-01", "effective_to": null, "source": "verified DCA rule document"
-  },
-  {
-    "rule_id": "LM-0004", "rule_version": "1.0.0", "clause_reference": "Rule 6(1)(d)",
-    "requirement": "Maximum Retail Price (MRP).",
-    "applicability": { "category": "all", "conditions": [] },
-    "validation": { "type": "presence", "parameters": { "field": "MRP" } },
-    "severity": "critical", "effective_from": "2011-01-01", "effective_to": null, "source": "verified DCA rule document"
-  },
-  {
-    "rule_id": "LM-0005", "rule_version": "1.0.0", "clause_reference": "Rule 6(1)(e)",
-    "requirement": "Month and year of manufacture/packing/import.",
-    "applicability": { "category": "all", "conditions": [] },
-    "validation": { "type": "presence", "parameters": { "field": "MANUFACTURE_OR_PACK_DATE" } },
-    "severity": "major", "effective_from": "2011-01-01", "effective_to": null, "source": "verified DCA rule document"
-  },
-  {
-    "rule_id": "LM-0006", "rule_version": "1.0.0", "clause_reference": "Rule 6(1)(f)",
-    "requirement": "Best before or use by date.",
-    "applicability": { "category": "food", "conditions": [] },
-    "validation": { "type": "presence", "parameters": { "field": "BEST_BEFORE_OR_USE_BY" } },
-    "severity": "major", "effective_from": "2011-01-01", "effective_to": null, "source": "verify before production use"
-  },
-  {
-    "rule_id": "LM-0007", "rule_version": "1.0.0", "clause_reference": "Rule 6(1)(h)",
-    "requirement": "Consumer Care contact information.",
-    "applicability": { "category": "all", "conditions": [] },
-    "validation": { "type": "presence", "parameters": { "field": "CONSUMER_CARE" } },
-    "severity": "minor", "effective_from": "2011-01-01", "effective_to": null, "source": "verify before production use"
-  },
-  {
-    "rule_id": "LM-0008", "rule_version": "1.0.0", "clause_reference": "Rule 6(1)(i)",
-    "requirement": "Country of origin.",
+    "rule_id": "LM-0003",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 6(1)(c)",
+    "requirement": "Country of Origin declaration for imported goods.",
     "applicability": { "category": "imported", "conditions": [] },
     "validation": { "type": "presence", "parameters": { "field": "COUNTRY_OF_ORIGIN" } },
-    "severity": "major", "effective_from": "2011-01-01", "effective_to": null, "source": "verify before production use"
+    "severity": "major",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "Legal Metrology Amendment Rules for Imports"
   },
   {
-    "rule_id": "LM-0009", "rule_version": "1.0.0", "clause_reference": "Rule 6(1)(j)",
-    "requirement": "Unit sale price.",
-    "applicability": { "category": "pre-packaged", "conditions": [] },
+    "rule_id": "LM-0004",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 6(1)(d)",
+    "requirement": "Net Quantity declared in standard SI measurement units (g, kg, ml, L, pcs).",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "presence", "parameters": { "field": "NET_QUANTITY" } },
+    "severity": "critical",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "Legal Metrology (Packaged Commodities) Rules, 2011"
+  },
+  {
+    "rule_id": "LM-0005",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 6(1)(e)",
+    "requirement": "Month and Year of manufacture, packing, or import (MM/YYYY).",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "presence", "parameters": { "field": "MANUFACTURE_OR_PACK_DATE" } },
+    "severity": "major",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "Legal Metrology (Packaged Commodities) Rules, 2011"
+  },
+  {
+    "rule_id": "LM-0006",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 6(1)(f)",
+    "requirement": "Maximum Retail Price (MRP) in mandatory format 'MRP Rs. XX.XX (incl. of all taxes)'.",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "mrp_format", "parameters": { "field": "MRP" } },
+    "severity": "critical",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "Legal Metrology (Packaged Commodities) Rules, 2011"
+  },
+  {
+    "rule_id": "LM-0007",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 6(1)(g)",
+    "requirement": "Consumer Care Cell contact details (Name, Address, Helpline Phone, Email).",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "consumer_care_completeness", "parameters": { "field": "CONSUMER_CARE" } },
+    "severity": "major",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "Legal Metrology (Packaged Commodities) Rules, 2011"
+  },
+  {
+    "rule_id": "LM-0008",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 6(1)(h)",
+    "requirement": "Unit Sale Price (USP) per g/kg/ml/L for products > 1kg/1L or > 1 unit.",
+    "applicability": { "category": "all", "conditions": [] },
     "validation": { "type": "presence", "parameters": { "field": "UNIT_SALE_PRICE" } },
-    "severity": "minor", "effective_from": "2011-01-01", "effective_to": null, "source": "verify before production use"
+    "severity": "minor",
+    "effective_from": "2022-04-01",
+    "effective_to": null,
+    "source": "PCR 2011 Amendment 2022"
   },
   {
-    "rule_id": "LM-0010", "rule_version": "1.0.0", "clause_reference": "Rule 6(1)(k)",
-    "requirement": "Other declarations (e.g. Veg/Non-Veg mark for food).",
+    "rule_id": "LM-0009",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 6(1)(j)",
+    "requirement": "Best Before, Expiry, or Use By Period for perishable, food & cosmetic commodities.",
     "applicability": { "category": "food", "conditions": [] },
-    "validation": { "type": "presence", "parameters": { "field": "OTHER_DECLARATION" } },
-    "severity": "major", "effective_from": "2011-01-01", "effective_to": null, "source": "verify before production use"
+    "validation": { "type": "presence", "parameters": { "field": "BEST_BEFORE_OR_USE_BY" } },
+    "severity": "major",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "FSSAI & Legal Metrology PCR 2011"
+  },
+  {
+    "rule_id": "LM-0010",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 7",
+    "requirement": "Minimum height of numerals and letters proportional to PDP area.",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "font_height", "parameters": { "field": "NET_QUANTITY" } },
+    "severity": "major",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "Legal Metrology Rules 2011 Rule 7"
+  },
+  {
+    "rule_id": "LM-0011",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 8",
+    "requirement": "Standard symbol of measurement units (Prohibition of 'gms', 'kgs', 'ltr').",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "unit_symbol", "parameters": { "field": "NET_QUANTITY" } },
+    "severity": "major",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "Legal Metrology Act 2009 Section 11 & Rule 8"
+  },
+  {
+    "rule_id": "LM-0012",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 9",
+    "requirement": "Prominence and placement of declarations on Principal Display Panel.",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "prominence", "parameters": { "field": "PRODUCT_NAME" } },
+    "severity": "medium",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "Legal Metrology Rules 2011 Rule 9"
+  },
+  {
+    "rule_id": "LM-0013",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 11",
+    "requirement": "Declarations in English or Hindi in Devnagari script.",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "language", "parameters": { "field": "PRODUCT_NAME" } },
+    "severity": "medium",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "Legal Metrology Rules 2011 Rule 11"
+  },
+  {
+    "rule_id": "LM-0014",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 18",
+    "requirement": "Multi-piece package declaration of number of items and net content per piece.",
+    "applicability": { "category": "pre-packaged", "conditions": [] },
+    "validation": { "type": "multi_piece", "parameters": { "field": "NET_QUANTITY" } },
+    "severity": "major",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "Legal Metrology Rules 2011 Rule 18"
+  },
+  {
+    "rule_id": "LM-0015",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 26",
+    "requirement": "Small Package Exemption Check (Packages 10g or 10ml or less).",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "exemption", "parameters": { "field": "NET_QUANTITY" } },
+    "severity": "low",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "Legal Metrology Rules 2011 Rule 26"
+  },
+  {
+    "rule_id": "LM-0016",
+    "rule_version": "1.0.0",
+    "clause_reference": "Rule 32",
+    "requirement": "Penalties for non-compliance under Section 36(1) of Legal Metrology Act, 2009.",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "penalty_audit", "parameters": { "field": "ALL" } },
+    "severity": "critical",
+    "effective_from": "2011-01-01",
+    "effective_to": null,
+    "source": "Legal Metrology Act, 2009 Section 36(1)"
   }
 ]

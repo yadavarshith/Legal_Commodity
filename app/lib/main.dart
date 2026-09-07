@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'screens/dashboard_screen.dart';
+import 'screens/scan_screen.dart';
+import 'screens/repository_screen.dart';
+import 'screens/rules_library_screen.dart';
+import 'main_webview.dart';
+import 'services/storage_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await StorageService.init();
   runApp(const LabelSureApp());
 }
 
@@ -12,7 +18,7 @@ class LabelSureApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'APEX — LabelSure',
+      title: 'APEX — Legal Metrology Compliance',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF0B0F19),
@@ -21,149 +27,86 @@ class LabelSureApp extends StatelessWidget {
           secondary: Color(0xFF10B981),
           surface: Color(0xFF161E2E),
         ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF111827),
+          elevation: 0,
+          centerTitle: false,
+          titleTextStyle: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
       ),
-      home: const WebAppHomeScreen(),
+      home: const MainNavigationShell(),
     );
   }
 }
 
-class WebAppHomeScreen extends StatefulWidget {
-  const WebAppHomeScreen({super.key});
+class MainNavigationShell extends StatefulWidget {
+  const MainNavigationShell({super.key});
 
   @override
-  State<WebAppHomeScreen> createState() => _WebAppHomeScreenState();
+  State<MainNavigationShell> createState() => _MainNavigationShellState();
 }
 
-class _WebAppHomeScreenState extends State<WebAppHomeScreen> {
-  late final WebViewController _controller;
-  bool _isLoading = true;
-  String _serverUrl = 'http://10.0.2.2:8000'; // Default Android Emulator host IP
+class _MainNavigationShellState extends State<MainNavigationShell> {
+  int _currentIndex = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageFinished: (url) => setState(() => _isLoading = false),
-          onWebResourceError: (error) {
-            debugPrint("WebView error: ${error.description}");
-          },
-        ),
-      );
-
-    _loadApp();
-  }
-
-  void _loadApp() {
-    setState(() => _isLoading = true);
-    // Load local bundled web application HTML/CSS/JS assets inside APK
-    _controller.loadFlutterAsset('assets/www/index.html');
-  }
-
-  void _showSettingsDialog() {
-    final controller = TextEditingController(text: _serverUrl);
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161E2E),
-        title: const Text("Backend Host Settings", style: TextStyle(color: Colors.white)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Set the backend API host server URL:",
-              style: TextStyle(color: Colors.grey, fontSize: 13),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: controller,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: "http://10.0.2.2:8000 or http://192.168.x.x:8000",
-                hintStyle: TextStyle(color: Colors.grey),
-              ),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: () {
-                final url = controller.text.trim();
-                if (url.isNotEmpty) {
-                  setState(() => _serverUrl = url);
-                  _controller.loadRequest(Uri.parse(url));
-                  Navigator.pop(ctx);
-                }
-              },
-              icon: const Icon(Icons.public, color: Colors.black),
-              label: const Text("Connect to Remote Backend Server", style: TextStyle(color: Colors.black)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00E5FF),
-                minimumSize: const Size(double.infinity, 44),
-              ),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: () {
-                _loadApp();
-                Navigator.pop(ctx);
-              },
-              icon: const Icon(Icons.phone_android, color: Color(0xFF10B981)),
-              label: const Text("Load Bundled Local App", style: TextStyle(color: Colors.white)),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 44),
-                side: const BorderSide(color: Color(0xFF10B981)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  void _navigateToTab(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF111827),
-        elevation: 0,
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF00E5FF).withOpacity(0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.verified_rounded, color: Color(0xFF00E5FF), size: 20),
-            ),
-            const SizedBox(width: 10),
-            const Text(
-              'APEX — LabelSure',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
-            onPressed: () => _controller.reload(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_rounded, color: Colors.white70),
-            onPressed: _showSettingsDialog,
-          ),
-        ],
+    final screens = [
+      DashboardScreen(
+        onStartScan: () => _navigateToTab(1),
+        onViewRepository: () => _navigateToTab(2),
       ),
-      body: Stack(
-        children: [
-          WebViewWidget(controller: _controller),
-          if (_isLoading)
-            const Center(
-              child: CircularProgressIndicator(color: Color(0xFF00E5FF)),
-            ),
+      const ScanScreen(),
+      const RepositoryScreen(),
+      const RulesLibraryScreen(),
+      const WebAppWebViewScreen(),
+    ];
+
+    return Scaffold(
+      body: IndexedStack(
+        index: _currentIndex,
+        children: screens,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: const Color(0xFF111827),
+        selectedItemColor: const Color(0xFF00E5FF),
+        unselectedItemColor: Colors.grey.shade500,
+        selectedFontSize: 11,
+        unselectedFontSize: 11,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard_rounded),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.document_scanner_rounded),
+            label: 'Scan Label',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.folder_special_rounded),
+            label: 'Repository',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.gavel_rounded),
+            label: 'Rules Library',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.web_rounded),
+            label: 'Web UI',
+          ),
         ],
       ),
     );

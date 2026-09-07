@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
 
@@ -41,7 +41,7 @@
           <i class="fa-solid fa-book-bookmark"></i> PCR Rule Corpus
         </button>
         <button class="nav-tab" data-tab="tab-analytics">
-          <i class="fa-solid fa-chart-pie"></i> Analytics Dashboard
+          <i class="fa-solid fa-chart-pie"></i> Analytics & Repository
         </button>
       </nav>
     </div>
@@ -49,11 +49,9 @@
     <div class="header-right">
       <div class="status-indicator" id="api-status">
         <span class="pulse-dot"></span>
-        
       </div>
       <div class="user-profile">
         <i class="fa-solid fa-user-shield"></i>
-      
       </div>
     </div>
   </header>
@@ -90,7 +88,7 @@
               <div class="meta-item">
                 <label><i class="fa-solid fa-layer-group"></i> Commodity Category</label>
                 <select id="meta-category" class="form-control-glow">
-                  <option value="all">General / All Categories</option>
+                  <option value="all">General / Auto-Detect Category</option>
                   <option value="food">Food & Edible Commodities</option>
                   <option value="cosmetics">Cosmetics & Personal Care</option>
                   <option value="imported">Imported Goods</option>
@@ -120,7 +118,7 @@
       <!-- Main Workbench Split Layout -->
       <div class="workbench-grid">
         
-        <!-- Left Panel: Package Canvas (Clean - No Overlay Watermarks) -->
+        <!-- Left Panel: Package Canvas -->
         <div class="workbench-panel visual-panel">
           <div class="panel-header">
             <h4><i class="fa-solid fa-camera"></i> Package Label View</h4>
@@ -155,16 +153,13 @@
             </div>
           </div>
 
-          <!-- Subnav Tabs (Rule Findings vs Extracted Fields vs Raw OCR) -->
+          <!-- Subnav Tabs (Rule Findings vs Extracted Fields) -->
           <div class="subnav-tabs">
             <button class="subnav-btn active" data-subtab="subtab-findings">
               <i class="fa-solid fa-gavel"></i> PCR Rule Findings (<span id="findings-count">0</span>)
             </button>
             <button class="subnav-btn" data-subtab="subtab-declarations">
               <i class="fa-solid fa-list-check"></i> Extracted Declarations (<span id="declarations-count">0</span>)
-            </button>
-            <button class="subnav-btn" data-subtab="subtab-ocr-raw">
-              <i class="fa-solid fa-font"></i> Raw OCR Text (<span id="ocr-block-count">0</span>)
             </button>
           </div>
 
@@ -193,29 +188,6 @@
                   <tr>
                     <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
                       No OCR declarations extracted yet.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- SUBTAB 3: RAW OCR TEXT BLOCKS -->
-          <div id="subtab-ocr-raw" class="subtab-content">
-            <div class="declarations-table-container">
-              <table class="declarations-table">
-                <thead>
-                  <tr>
-                    <th style="width: 50px;">#</th>
-                    <th>OCR Extracted Text</th>
-                    <th>Confidence</th>
-                    <th>Bounding Box</th>
-                  </tr>
-                </thead>
-                <tbody id="ocr-raw-body">
-                  <tr>
-                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
-                      No OCR scan performed yet. Upload an image and run inspection.
                     </td>
                   </tr>
                 </tbody>
@@ -311,11 +283,11 @@
         <div class="section-title-bar">
           <div>
             <h3><i class="fa-solid fa-scale-balanced"></i> Legal Metrology (Packaged Commodities) Rule Corpus</h3>
-            <span class="sub-text">Versioned Rule Definitions under PCR 2011 Rule 6(1)</span>
+            <span class="sub-text">16 Versioned Rule Definitions under PCR 2011 & Legal Metrology Act, 2009</span>
           </div>
 
           <div class="filter-controls">
-            <input type="text" id="rule-search" class="search-input" placeholder="Search rules or clause...">
+            <input type="text" id="rule-search" class="search-input" placeholder="Search rules, clause, or requirement...">
             <select id="rule-category-filter" class="filter-select">
               <option value="all">All Categories</option>
               <option value="food">Food Items</option>
@@ -332,22 +304,22 @@
     </section>
 
 
-    <!-- TAB 4: ANALYTICS DASHBOARD -->
+    <!-- TAB 4: ANALYTICS & REPOSITORY DASHBOARD -->
     <section id="tab-analytics" class="tab-content">
       
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon purple"><i class="fa-solid fa-boxes-stacked"></i></div>
           <div class="stat-info">
-            <span class="stat-value" id="stat-total">142</span>
-            <span class="stat-label">Total Inspections</span>
+            <span class="stat-value" id="stat-total">0</span>
+            <span class="stat-label">Total Scanned Commodities</span>
           </div>
         </div>
 
         <div class="stat-card">
           <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
           <div class="stat-info">
-            <span class="stat-value" id="stat-rate">84.5%</span>
+            <span class="stat-value" id="stat-rate">100%</span>
             <span class="stat-label">Compliance Pass Rate</span>
           </div>
         </div>
@@ -355,7 +327,7 @@
         <div class="stat-card">
           <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
           <div class="stat-info">
-            <span class="stat-value" id="stat-flagged">22</span>
+            <span class="stat-value" id="stat-flagged">0</span>
             <span class="stat-label">Flagged Violations</span>
           </div>
         </div>
@@ -363,7 +335,7 @@
         <div class="stat-card">
           <div class="stat-icon amber"><i class="fa-solid fa-hourglass-half"></i></div>
           <div class="stat-info">
-            <span class="stat-value" id="stat-pending">5</span>
+            <span class="stat-value" id="stat-pending">0</span>
             <span class="stat-label">Pending Reviews</span>
           </div>
         </div>
@@ -378,10 +350,42 @@
         </div>
 
         <div class="chart-card">
-          <h4><i class="fa-solid fa-chart-donut"></i> Inspection Category Distribution</h4>
+          <h4><i class="fa-solid fa-chart-donut"></i> Commodity Category Distribution</h4>
           <div class="category-list" id="category-distribution">
             <!-- Dynamically populated -->
           </div>
+        </div>
+      </div>
+
+      <!-- Scanned Products Repository Search & List -->
+      <div class="section-card" style="margin-top: 1.5rem;">
+        <div class="section-title-bar">
+          <div>
+            <h3><i class="fa-solid fa-boxes-packing"></i> Local Memory Reports Repository</h3>
+            <span class="sub-text">View all dynamically scanned inspection reports in memory and download PDF reports anytime</span>
+          </div>
+
+          <div class="filter-controls">
+            <input type="text" id="repo-search-input" class="search-input" placeholder="Search memory reports by Product Name, Case ID, Category...">
+          </div>
+        </div>
+
+        <div class="declarations-table-container">
+          <table class="declarations-table" id="repo-table">
+            <thead>
+              <tr>
+                <th>Case ID</th>
+                <th>Commodity Name</th>
+                <th>Category</th>
+                <th>Overall Status</th>
+                <th>Compliance Score</th>
+                <th>Download Report</th>
+              </tr>
+            </thead>
+            <tbody id="repo-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -390,6 +394,6 @@
   </main>
 
   <!-- JavaScript App Logic -->
-  <script src="app.js"></script>
+  <script src="/static/app.js"></script>
 </body>
 </html>

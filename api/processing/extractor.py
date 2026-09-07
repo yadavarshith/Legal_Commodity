@@ -1,7 +1,7 @@
 """
-APEX — LabelSure Declaration Extractor.
+APEX — Context-Aware Legal Metrology Declaration Extractor.
 Maps OCR text regions to strict Declaration contracts for all Legal Metrology statutory fields.
-Designed to handle real OCR text (with potential typos, mixed case, noisy characters).
+Designed to handle real OCR text, multi-line packaging layouts, noise, and OCR typos.
 """
 
 import re
@@ -15,22 +15,23 @@ from schemas.declaration import Declaration, DeclarationType, DeclarationStatus
 
 PATTERNS = {
     DeclarationType.PRODUCT_NAME: [
-        r"(?i)(?:Brand|Product\s*Name|Name\s*of\s*(?:the\s*)?(?:Product|Commodity|Item))[\s:]+(.+)",
+        r"(?i)(?:Brand|Product\s*Name|Commodity\s*Name|Name\s*of\s*(?:the\s*)?(?:Product|Commodity|Item))[\s:]+(.+)",
         r"(?i)(?:Product|Commodity|Item)\s*:\s*(.+)",
+        r"(?i)\b(?:Organic|Basmati|Rice|Atta|Flour|Wheat|Oil|Refined|Ghee|Milk|Butter|Paneer|Spices|Masala|Tea|Coffee|Sugar|Salt|Dal|Pulses|Juice|Water|Soda|Biscuits|Cookies|Noodles|Snacks|Chips|Soap|Lotion|Cream|Shampoo|Face\s*Wash|Detergent)\b.+",
     ],
     DeclarationType.MANUFACTURER: [
         r"(?i)(?:Mfg\.?\s*(?:&|and)?\s*(?:Mkd|Mktd|Packed|Pkd)\.?\s*(?:By)?|Manufactured\s*(?:By|&\s*Packed\s*By)|Mfg\.?\s*By|Packed\s*By|Packer|Importer|Marketed\s*By|Distributed\s*By)[\s:]+(.+)",
         r"(?i)(?:Manufacturer|Packer\s*Address|Regd\.?\s*(?:Office|Off))[\s:]+(.+)",
-        r"(?i).+(?:Pvt\.?\s*Ltd\.?|Limited|Co(?:\.|operative)?|Inc\.?|Corp(?:oration)?|Industries|Refineries|Labs|Holdings)\b.+",
+        r"(?i).+(?:Pvt\.?\s*Ltd\.?|Limited|Co(?:\.|operative)?|Inc\.?|Corp(?:oration)?|Industries|Refineries|Labs|Holdings|Foods|Herbals|Organics)\b.+",
     ],
     DeclarationType.NET_QUANTITY: [
-        r"(?i)(?:Net\s*(?:Qty|Wt|Weight|Quantity|Vol|Volume|Content))[\s:.]*(\d+(?:[.,]\d+)?\s*(?:g|gm|gms|kg|kgs|ml|mL|l|ltr|litres?|liters?|oz|fl\.?\s*oz))\b",
-        r"(?i)(?:Contents?|Quantity|Wt\.?)[\s:.]*(\d+(?:[.,]\d+)?\s*(?:g|gm|kg|ml|mL|l|ltr))\b",
-        r"\b(\d+(?:[.,]\d+)?\s*(?:g|gm|kg|ml|mL|l|ltr|oz))\b",
+        r"(?i)(?:Net\s*(?:Qty|Wt|Weight|Quantity|Vol|Volume|Content))[\s:.]*(\d+(?:[.,]\d+)?\s*(?:g|gm|gms|kg|kgs|ml|mL|l|ltr|litres?|liters?|pcs|pieces|units?))\b",
+        r"(?i)(?:Contents?|Quantity|Wt\.?)[\s:.]*(\d+(?:[.,]\d+)?\s*(?:g|gm|gms|kg|kgs|ml|mL|l|ltr))\b",
+        r"\b(\d+(?:[.,]\d+)?\s*(?:g|gm|gms|kg|kgs|ml|mL|l|ltr))\b",
     ],
     DeclarationType.MRP: [
-        r"(?i)(?:M\.?\s*R\.?\s*P\.?|Maximum\s*Retail\s*Price|Max\.?\s*Price)[\s:.]*(?:Rs\.?|INR|₹)?\s*(\d+(?:[.,]\d{1,2})?)",
-        r"(?i)(?:Rs\.?|INR|₹)\s*(\d+(?:[.,]\d{1,2})?)\s*(?:\(?\s*(?:Incl|incl))?",
+        r"(?i)(?:M\.?\s*R\.?\s*P\.?|Maximum\s*Retail\s*Price|Max\.?\s*Price)[\s:.]*(?:Rs\.?|INR|₹)?\s*(\d+(?:[.,]\d{1,2})?.*)",
+        r"(?i)(?:Rs\.?|INR|₹)\s*(\d+(?:[.,]\d{1,2})?)\s*(?:\(?\s*(?:Incl|incl).*)?",
         r"(?i)(?:Price|MRP)[\s:.]*(\d+(?:\.\d{1,2})?)",
     ],
     DeclarationType.MANUFACTURE_OR_PACK_DATE: [
@@ -45,28 +46,11 @@ PATTERNS = {
         r"(?i)(?:Consumer\s*Care|Customer\s*Care|Helpline|Toll\s*Free|Care\s*(?:Email|Line)|Feedback|Contact\s*Us|For\s*(?:Queries|Complaints))[\s:.]*(.+)",
         r"[\w\.\-]+@[\w\.\-]+\.\w{2,}",
         r"\b1800[\s\-]?\d{2,4}[\s\-]?\d{3,4}\b",
+        r"\b\+?91[\s\-]?\d{10}\b",
     ],
     DeclarationType.COUNTRY_OF_ORIGIN: [
         r"(?i)(?:Country\s*of\s*Origin|Origin|Made\s*[Ii]n|Product\s*of|Imported\s*[Ff]rom)[\s:.]*(.+)",
         r"(?i)\b(India|China|USA|United\s*States|UK|Germany|Switzerland|France|Japan|South\s*Korea|Thailand|Vietnam|Indonesia|Malaysia|Bangladesh|Sri\s*Lanka|Italy|Spain|Australia|Canada|Brazil|Mexico|Turkey|Taiwan|Netherlands|Belgium|Singapore|Nepal)\b",
-    ],
-}
-
-# Additional fields that can appear on Indian packaged commodities
-EXTRA_PATTERNS = {
-    "FSSAI_LICENSE": [
-        r"(?i)(?:FSSAI|Lic|License|Licence)\s*(?:No\.?|Number)?[\s:.]*(\d{10,14})",
-        r"\b(\d{10,14})\b",  # FSSAI license numbers are 14 digits
-    ],
-    "BATCH_NUMBER": [
-        r"(?i)(?:Batch|Lot)\s*(?:No\.?|Number|#)?[\s:.]*([A-Z0-9\-/]+)",
-    ],
-    "INGREDIENTS": [
-        r"(?i)(?:Ingredients?|Contains?)[\s:.]+(.+)",
-    ],
-    "ALLERGEN": [
-        r"(?i)(?:Allergen|Allergy)\s*(?:Info|Information|Warning|Advice)?[\s:.]*(.+)",
-        r"(?i)(?:Contains?|May\s*Contain)[\s:]*(.+?(?:nut|milk|soy|wheat|egg|gluten|shellfish|fish).+)",
     ],
 }
 
@@ -78,7 +62,6 @@ def clean_extracted_value(dtype: DeclarationType, raw_text: str, match: re.Match
     else:
         val = match.group(0).strip()
 
-    # Clean common prefixes
     prefixes = [
         r"(?i)^(?:Brand\s*/?\s*)?Product\s*(?:Name)?\s*:\s*",
         r"(?i)^(?:Name|Brand|Item)\s*:\s*",
@@ -95,9 +78,7 @@ def clean_extracted_value(dtype: DeclarationType, raw_text: str, match: re.Match
     for p in prefixes:
         val = re.sub(p, "", val).strip()
 
-    # Remove trailing noise characters
     val = re.sub(r"[\s|]+$", "", val).strip()
-    # Remove leading/trailing punctuation noise
     val = val.strip(".:;,- ")
 
     return val if val and len(val) >= 2 else ""
@@ -107,7 +88,8 @@ def extract_declarations(ocr_results: List[Dict], image_id: str) -> List[Declara
     """
     Map OCR text segments to Declaration models.
     Iterates all OCR blocks and matches against Legal Metrology patterns.
-    Also concatenates adjacent short blocks for better multi-line field matching.
+    Also concatenates 2-line and 3-line adjacent blocks for multi-line packaging layouts.
+    Includes dynamic fallback for PRODUCT_NAME extraction from top prominent OCR lines.
     """
     declarations = []
     found_types = set()
@@ -115,7 +97,7 @@ def extract_declarations(ocr_results: List[Dict], image_id: str) -> List[Declara
     if not ocr_results:
         return declarations
 
-    # First pass: Try matching individual OCR blocks
+    # 1st Pass: Match individual OCR blocks
     for segment in ocr_results:
         text = segment.get("text", "").strip()
         if not text or len(text) < 2:
@@ -147,50 +129,91 @@ def extract_declarations(ocr_results: List[Dict], image_id: str) -> List[Declara
                         found_types.add(dtype)
                         break
 
-    # Second pass: Concatenate consecutive OCR blocks and try matching
-    # (helps when fields span multiple OCR lines)
-    if len(ocr_results) >= 2:
-        for i in range(len(ocr_results) - 1):
-            t1 = ocr_results[i].get("text", "").strip()
-            t2 = ocr_results[i + 1].get("text", "").strip()
-            if not t1 or not t2:
+    # 2nd Pass: Concatenate 2 and 3 consecutive OCR blocks
+    n = len(ocr_results)
+    if n >= 2:
+        for k in range(2, 4):
+            if n < k:
                 continue
-
-            combined = f"{t1} {t2}"
-            avg_conf = (ocr_results[i].get("confidence", 0.5) + ocr_results[i+1].get("confidence", 0.5)) / 2
-
-            # Merge bounding boxes
-            b1 = ocr_results[i].get("bbox", [0, 0, 100, 30])
-            b2 = ocr_results[i+1].get("bbox", [0, 0, 100, 30])
-            merged_bbox = [
-                min(b1[0], b2[0]), min(b1[1], b2[1]),
-                max(b1[2], b2[2]), max(b1[3], b2[3])
-            ]
-
-            for dtype, pattern_list in PATTERNS.items():
-                if dtype in found_types:
+            for i in range(n - k + 1):
+                group = ocr_results[i : i + k]
+                texts = [g.get("text", "").strip() for g in group if g.get("text", "").strip()]
+                if not texts:
                     continue
 
-                for pattern in pattern_list:
-                    try:
-                        match = re.search(pattern, combined)
-                    except re.error:
+                combined = " ".join(texts)
+                avg_conf = sum(g.get("confidence", 0.5) for g in group) / len(group)
+
+                merged_bbox = [
+                    min(g.get("bbox", [0, 0, 100, 30])[0] for g in group),
+                    min(g.get("bbox", [0, 0, 100, 30])[1] for g in group),
+                    max(g.get("bbox", [0, 0, 100, 30])[2] for g in group),
+                    max(g.get("bbox", [0, 0, 100, 30])[3] for g in group),
+                ]
+
+                for dtype, pattern_list in PATTERNS.items():
+                    if dtype in found_types:
                         continue
 
-                    if match:
-                        norm_val = clean_extracted_value(dtype, combined, match)
-                        if norm_val and len(norm_val) >= 2:
-                            declarations.append(Declaration(
-                                type=dtype,
-                                raw_text=combined,
-                                normalized_value=norm_val,
-                                confidence=round(avg_conf, 2),
-                                bbox=merged_bbox,
-                                image_id=image_id,
-                                panel="front",
-                                status=DeclarationStatus.EXTRACTED
-                            ))
-                            found_types.add(dtype)
-                            break
+                    for pattern in pattern_list:
+                        try:
+                            match = re.search(pattern, combined)
+                        except re.error:
+                            continue
+
+                        if match:
+                            norm_val = clean_extracted_value(dtype, combined, match)
+                            if norm_val and len(norm_val) >= 2:
+                                declarations.append(Declaration(
+                                    type=dtype,
+                                    raw_text=combined,
+                                    normalized_value=norm_val,
+                                    confidence=round(avg_conf, 2),
+                                    bbox=merged_bbox,
+                                    image_id=image_id,
+                                    panel="front",
+                                    status=DeclarationStatus.EXTRACTED
+                                ))
+                                found_types.add(dtype)
+                                break
+
+    # 3rd Pass: Dynamic Fallback for PRODUCT_NAME if not explicitly matched
+    if DeclarationType.PRODUCT_NAME not in found_types:
+        boilerplate_keywords = [
+            "mfg", "manufactured", "packed", "packer", "mrp", "rs", "inr", "net wt", "net qty",
+            "net weight", "net quantity", "ingredients", "batch", "exp", "expiry", "best before",
+            "customer care", "helpline", "email", "address", "phone", "lic no", "fssai", "registered",
+            "marketed", "imported"
+        ]
+        
+        best_candidate = None
+        for segment in ocr_results:
+            text = segment.get("text", "").strip()
+            if not text or len(text) < 3 or len(text) > 80:
+                continue
+
+            lower_text = text.lower()
+            # Skip boilerplate lines
+            if any(bp in lower_text for bp in boilerplate_keywords):
+                continue
+            # Must contain letters
+            if not re.search(r"[a-zA-Z]{2,}", text):
+                continue
+
+            best_candidate = segment
+            break
+
+        if best_candidate:
+            norm_val = best_candidate.get("text", "").strip()
+            declarations.append(Declaration(
+                type=DeclarationType.PRODUCT_NAME,
+                raw_text=norm_val,
+                normalized_value=norm_val,
+                confidence=best_candidate.get("confidence", 0.75),
+                bbox=best_candidate.get("bbox", [0, 0, 100, 30]),
+                image_id=image_id,
+                panel="front",
+                status=DeclarationStatus.EXTRACTED
+            ))
 
     return declarations

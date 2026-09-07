@@ -11,8 +11,12 @@ class RuleSeverity(str, Enum):
 
     CRITICAL = "critical"
     MAJOR = "major"
+    MEDIUM = "medium"
     MINOR = "minor"
+    LOW = "low"
     INFO = "info"
+
+
 
 
 class ValidationType(str, Enum):
@@ -23,6 +27,16 @@ class ValidationType(str, Enum):
     RANGE = "range"
     CROSS_FIELD = "cross_field"
     CUSTOM = "custom"
+    MRP_FORMAT = "mrp_format"
+    CONSUMER_CARE_COMPLETENESS = "consumer_care_completeness"
+    FONT_HEIGHT = "font_height"
+    UNIT_SYMBOL = "unit_symbol"
+    PROMINENCE = "prominence"
+    LANGUAGE = "language"
+    MULTI_PIECE = "multi_piece"
+    EXEMPTION = "exemption"
+    PENALTY_AUDIT = "penalty_audit"
+
 
 
 class RuleApplicability(BaseModel):
