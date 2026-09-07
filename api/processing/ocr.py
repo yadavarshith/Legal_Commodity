@@ -13,8 +13,23 @@ from PIL import Image, ImageFilter, ImageEnhance
 
 logger = logging.getLogger("labelsure.ocr")
 
-# Set Tesseract binary path for Windows install
-TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+import shutil
+
+# Dynamic Tesseract lookup
+TESSERACT_CANDIDATES = [
+    r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+    r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+    os.path.expanduser(r"~\AppData\Local\Programs\Tesseract-OCR\tesseract.exe"),
+]
+
+def _find_tesseract_binary() -> str:
+    path = shutil.which("tesseract")
+    if path:
+        return path
+    for candidate in TESSERACT_CANDIDATES:
+        if os.path.isfile(candidate):
+            return candidate
+    return ""
 
 # Lazy-loaded RapidOCR engine
 _rapidocr_engine = None
@@ -44,12 +59,14 @@ def _preprocess_image(img: Image.Image) -> Image.Image:
 
 def _ocr_with_pytesseract(image_path: str) -> List[Dict[str, Any]]:
     """Run PyTesseract OCR on the image using installed Tesseract binary."""
+    tess_bin = _find_tesseract_binary()
+    if not tess_bin:
+        return []
+
     try:
         import pytesseract
 
-        # Point pytesseract to the installed Tesseract binary
-        if os.path.isfile(TESSERACT_PATH):
-            pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
+        pytesseract.pytesseract.tesseract_cmd = tess_bin
         
         img = Image.open(image_path)
         img = _preprocess_image(img)
