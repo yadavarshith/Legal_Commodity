@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models import InspectorDecision, InspectionCase
+from .models import InspectorDecision, InspectionCase
 import json
 
 def calculate_metrics(db: Session):

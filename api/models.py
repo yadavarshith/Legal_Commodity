@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, JSON, Integer, DateTime
-from database import Base
+from .database import Base
 import datetime
 
 class InspectionCase(Base):

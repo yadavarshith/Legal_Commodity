@@ -56,6 +56,14 @@ class InspectorDecisionRequest(BaseModel):
     reason: Optional[str] = None
 
 
+class InspectionTrace(BaseModel):
+    """Pipeline execution trace for auditability."""
+
+    steps: List[str] = Field(
+        default_factory=list,
+        description="Ordered pipeline stage names executed (quality, ocr, extract, context, rules, review).",
+    )
+
 
 class Inspection(BaseModel):
     """

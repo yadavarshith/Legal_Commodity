@@ -11,7 +11,14 @@ Design law: AI observes; rules decide; evidence explains; inspectors verify.
 from schemas.declaration import Declaration, DeclarationType
 from schemas.rule_config import RuleConfig
 from schemas.finding import Finding, FindingStatus
-from schemas.inspection import Inspection, InspectionStatus
+from schemas.inspection import (
+    Inspection,
+    InspectionStatus,
+    InspectionImage,
+    InspectionTrace,
+    ProductContext,
+    InspectorDecisionRequest,
+)
 
 __all__ = [
     "Declaration",
@@ -21,4 +28,8 @@ __all__ = [
     "FindingStatus",
     "Inspection",
     "InspectionStatus",
+    "InspectionImage",
+    "InspectionTrace",
+    "ProductContext",
+    "InspectorDecisionRequest",
 ]

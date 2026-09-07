@@ -303,10 +303,10 @@
       "type": "string"
     },
     "InspectionTrace": {
-      "description": "Ordered pipeline steps executed during this inspection.",
+      "description": "Pipeline execution trace for auditability.",
       "properties": {
         "steps": {
-          "description": "Pipeline steps in execution order.",
+          "description": "Ordered pipeline stage names executed (quality, ocr, extract, context, rules, review).",
           "items": {
             "type": "string"
           },
@@ -442,8 +442,7 @@
       "description": "Current inspection lifecycle status."
     },
     "trace": {
-      "$ref": "#/$defs/InspectionTrace",
-      "description": "Pipeline execution trace for auditability."
+      "$ref": "#/$defs/InspectionTrace"
     }
   },
   "required": [

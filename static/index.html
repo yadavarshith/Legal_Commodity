@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APEX — LabelSure | Legal Metrology AI Inspection Platform</title>
+  <meta name="description" content="AI-assisted Legal Metrology (Packaged Commodities) compliance and inspection platform. AI observes; rules decide; evidence explains; inspectors verify.">
+  
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-box">
+        <i class="fa-solid fa-scale-balanced logo-icon"></i>
+        <div class="logo-text">
+          <span class="brand-apex">APEX</span>
+          <span class="brand-sub">LabelSure</span>
+        </div>
+      </div>
+      <span class="tagline-badge"><i class="fa-solid fa-shield-halved"></i> Legal Metrology Rule Engine (PCR 2011)</span>
+    </div>
+
+    <div class="header-center">
+      <nav class="nav-tabs">
+        <button class="nav-tab active" data-tab="tab-workbench">
+          <i class="fa-solid fa-microscope"></i> Package Inspection
+        </button>
+        <button class="nav-tab" data-tab="tab-audit">
+          <i class="fa-solid fa-clipboard-check"></i> Inspector Audit Log
+        </button>
+        <button class="nav-tab" data-tab="tab-rules">
+          <i class="fa-solid fa-book-bookmark"></i> PCR Rule Corpus
+        </button>
+        <button class="nav-tab" data-tab="tab-analytics">
+          <i class="fa-solid fa-chart-pie"></i> Analytics Dashboard
+        </button>
+      </nav>
+    </div>
+
+    <div class="header-right">
+      <div class="status-indicator" id="api-status">
+        <span class="pulse-dot"></span>
+        
+      </div>
+      <div class="user-profile">
+        <i class="fa-solid fa-user-shield"></i>
+      
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+
+    <!-- TAB 1: INSPECTION WORKBENCH -->
+    <section id="tab-workbench" class="tab-content active">
+      
+      <!-- Upload & Package Metadata Hero Card -->
+      <div class="section-card upload-hero-card">
+        <div class="hero-upload-layout">
+          
+          <!-- Dropzone Box -->
+          <div class="premium-dropzone" id="dropzone">
+            <div class="dropzone-glow"></div>
+            <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+            <div class="dropzone-text">
+              <h4 id="upload-main-title">Upload Package Label Image</h4>
+              <p id="upload-sub-title">Drag & drop your commodity package image here or click browse</p>
+              <div class="file-pill" id="file-status-pill" style="display: none;">
+                <i class="fa-solid fa-file-image"></i> <span id="file-name-span">label.png</span>
+              </div>
+            </div>
+            <input type="file" id="image-upload" accept="image/*" style="display: none;">
+            <button class="btn-browse-glow" id="btn-browse-file">
+              <i class="fa-solid fa-folder-open"></i> Browse Label Image
+            </button>
+          </div>
+
+          <!-- Metadata & Execution Box -->
+          <div class="execution-controls-box">
+            <div class="meta-row">
+              <div class="meta-item">
+                <label><i class="fa-solid fa-layer-group"></i> Commodity Category</label>
+                <select id="meta-category" class="form-control-glow">
+                  <option value="all">General / All Categories</option>
+                  <option value="food">Food & Edible Commodities</option>
+                  <option value="cosmetics">Cosmetics & Personal Care</option>
+                  <option value="imported">Imported Goods</option>
+                  <option value="electronics">Electronics & Household</option>
+                </select>
+              </div>
+
+              <div class="meta-item">
+                <label><i class="fa-solid fa-earth-americas"></i> Origin / Import Status</label>
+                <select id="meta-import" class="form-control-glow">
+                  <option value="domestic">Domestic Packaging</option>
+                  <option value="imported">Imported Commodity</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="action-row">
+              <button class="btn-launch-inspection" id="btn-run-inspection">
+                <i class="fa-solid fa-bolt"></i> ⚡ RUN LEGAL METROLOGY INSPECTION
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Main Workbench Split Layout -->
+      <div class="workbench-grid">
+        
+        <!-- Left Panel: Package Canvas (Clean - No Overlay Watermarks) -->
+        <div class="workbench-panel visual-panel">
+          <div class="panel-header">
+            <h4><i class="fa-solid fa-camera"></i> Package Label View</h4>
+            <span class="toolbar-info" id="active-image-info">No Image Loaded</span>
+          </div>
+
+          <!-- Image Canvas Container with Laser Scanner Beam -->
+          <div class="image-viewer-container" id="image-container">
+            <div class="empty-canvas-state" id="empty-canvas">
+              <i class="fa-solid fa-image-portrait empty-icon"></i>
+              <h4>No Package Label Loaded</h4>
+              <p>Upload a package label image above and click <strong>"⚡ RUN LEGAL METROLOGY INSPECTION"</strong> to analyze.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Panel: Compliance Results & Declarations -->
+        <div class="workbench-panel analysis-panel">
+          
+          <!-- Overall Status Banner -->
+          <div class="overall-status-bar status-idle" id="overall-status-bar">
+            <div class="status-left">
+              <i class="fa-solid fa-circle-info status-icon" id="overall-status-icon"></i>
+              <div>
+                <span class="status-title" id="overall-status-title">AWAITING INSPECTION</span>
+                <span class="status-desc" id="overall-status-desc">Upload a label image and click Run Inspection</span>
+              </div>
+            </div>
+            <div class="status-right">
+              <span class="inspection-id-badge" id="case-id-display">INS-READY</span>
+            </div>
+          </div>
+
+          <!-- Subnav Tabs (Rule Findings vs Extracted Fields vs Raw OCR) -->
+          <div class="subnav-tabs">
+            <button class="subnav-btn active" data-subtab="subtab-findings">
+              <i class="fa-solid fa-gavel"></i> PCR Rule Findings (<span id="findings-count">0</span>)
+            </button>
+            <button class="subnav-btn" data-subtab="subtab-declarations">
+              <i class="fa-solid fa-list-check"></i> Extracted Declarations (<span id="declarations-count">0</span>)
+            </button>
+            <button class="subnav-btn" data-subtab="subtab-ocr-raw">
+              <i class="fa-solid fa-font"></i> Raw OCR Text (<span id="ocr-block-count">0</span>)
+            </button>
+          </div>
+
+          <!-- SUBTAB 1: RULE FINDINGS -->
+          <div id="subtab-findings" class="subtab-content active">
+            <div class="findings-list" id="findings-list">
+              <div class="empty-list-state">
+                <p>No rule findings yet. Click <strong>"⚡ RUN LEGAL METROLOGY INSPECTION"</strong> to evaluate Legal Metrology compliance.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUBTAB 2: EXTRACTED DECLARATIONS -->
+          <div id="subtab-declarations" class="subtab-content">
+            <div class="declarations-table-container">
+              <table class="declarations-table">
+                <thead>
+                  <tr>
+                    <th>Statutory Field</th>
+                    <th>Extracted Text Value</th>
+                    <th>Confidence</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="declarations-table-body">
+                  <tr>
+                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                      No OCR declarations extracted yet.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SUBTAB 3: RAW OCR TEXT BLOCKS -->
+          <div id="subtab-ocr-raw" class="subtab-content">
+            <div class="declarations-table-container">
+              <table class="declarations-table">
+                <thead>
+                  <tr>
+                    <th style="width: 50px;">#</th>
+                    <th>OCR Extracted Text</th>
+                    <th>Confidence</th>
+                    <th>Bounding Box</th>
+                  </tr>
+                </thead>
+                <tbody id="ocr-raw-body">
+                  <tr>
+                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                      No OCR scan performed yet. Upload an image and run inspection.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- TAB 2: INSPECTOR AUDIT LOG & DECISIONS -->
+    <section id="tab-audit" class="tab-content">
+      <div class="section-card">
+        <div class="section-title">
+          <h3><i class="fa-solid fa-user-check"></i> Legal Metrology Inspector Action & Audit Decision</h3>
+          <span class="sub-text">Record inspector human-in-the-loop decisions on rule findings into the database</span>
+        </div>
+
+        <div class="audit-grid">
+          
+          <div class="audit-form-panel">
+            <form id="inspector-form">
+              <div class="form-group">
+                <label for="review-finding-id">Select Finding to Review</label>
+                <select id="review-finding-id" class="form-control">
+                  <option value="">No active findings</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Inspector Decision</label>
+                <div class="radio-options">
+                  <label class="radio-card accept">
+                    <input type="radio" name="decision" value="ACCEPT" checked>
+                    <div class="radio-content">
+                      <i class="fa-solid fa-circle-check"></i>
+                      <span>Accept Finding</span>
+                      <small>Confirm violation & issue notice</small>
+                    </div>
+                  </label>
+
+                  <label class="radio-card override">
+                    <input type="radio" name="decision" value="OVERRIDE">
+                    <div class="radio-content">
+                      <i class="fa-solid fa-circle-xmark"></i>
+                      <span>Override & Pass</span>
+                      <small>Field verified on physical package</small>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="review-reason">Inspector Rationale & Compliance Notes</label>
+                <textarea id="review-reason" class="form-control" rows="3" placeholder="Enter justification or inspection report details..."></textarea>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn-primary" id="btn-submit-review">
+                  <i class="fa-solid fa-database"></i> Commit Decision to Audit Trail
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div class="audit-history-panel">
+            <h4><i class="fa-solid fa-clock-rotate-left"></i> Recorded Inspector Audit History</h4>
+            <div class="audit-feed" id="audit-feed">
+              <div class="feed-item">
+                <div class="feed-badge accept">SYSTEM</div>
+                <div class="feed-content">
+                  <div class="feed-header">
+                    <strong>Audit Engine Ready</strong>
+                    <span class="feed-time">Active</span>
+                  </div>
+                  <p>Connected to <code>labelsure.db</code> SQLite audit database.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- TAB 3: RULE CORPUS (PCR 2011) -->
+    <section id="tab-rules" class="tab-content">
+      <div class="section-card">
+        <div class="section-title-bar">
+          <div>
+            <h3><i class="fa-solid fa-scale-balanced"></i> Legal Metrology (Packaged Commodities) Rule Corpus</h3>
+            <span class="sub-text">Versioned Rule Definitions under PCR 2011 Rule 6(1)</span>
+          </div>
+
+          <div class="filter-controls">
+            <input type="text" id="rule-search" class="search-input" placeholder="Search rules or clause...">
+            <select id="rule-category-filter" class="filter-select">
+              <option value="all">All Categories</option>
+              <option value="food">Food Items</option>
+              <option value="imported">Imported Commodities</option>
+              <option value="pre-packaged">Pre-Packaged Goods</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="rules-grid" id="rules-cards-grid">
+          <!-- Dynamically populated from /rules -->
+        </div>
+      </div>
+    </section>
+
+
+    <!-- TAB 4: ANALYTICS DASHBOARD -->
+    <section id="tab-analytics" class="tab-content">
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon purple"><i class="fa-solid fa-boxes-stacked"></i></div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-total">142</span>
+            <span class="stat-label">Total Inspections</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-rate">84.5%</span>
+            <span class="stat-label">Compliance Pass Rate</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-flagged">22</span>
+            <span class="stat-label">Flagged Violations</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon amber"><i class="fa-solid fa-hourglass-half"></i></div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-pending">5</span>
+            <span class="stat-label">Pending Reviews</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h4><i class="fa-solid fa-chart-column"></i> Top Failing Legal Metrology Rules</h4>
+          <div class="bar-chart-list" id="bar-chart-rules">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h4><i class="fa-solid fa-chart-donut"></i> Inspection Category Distribution</h4>
+          <div class="category-list" id="category-distribution">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- JavaScript App Logic -->
+  <script src="/static/app.js"></script>
+</body>
+</html>

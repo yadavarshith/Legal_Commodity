@@ -1,0 +1,21 @@
+INFO:     Started server process [14796]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:42062 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42063 - "POST /inspections HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:42064 - "POST /inspections HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42065 - "POST /inspections/INS-002/review HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42066 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35941 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35942 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62692 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2064 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58464 - "POST /inspections HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58467 - "POST /inspections/INS-002/review HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40137 - "GET / HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40137 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:2216 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2222 - "POST /inspections HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34376 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:26931 - "GET / HTTP/1.1" 404 Not Found
