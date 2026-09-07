@@ -341,41 +341,4 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> with SingleTick
       ),
     );
   }
-
-  Widget _buildJurisdictionRow(String country, String status, String note, Color color) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 6, bottom: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 140,
-            child: Text(
-              country,
-              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: color, width: 0.8),
-            ),
-            child: Text(
-              status,
-              style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              note,
-              style: const TextStyle(color: Colors.grey, fontSize: 10),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

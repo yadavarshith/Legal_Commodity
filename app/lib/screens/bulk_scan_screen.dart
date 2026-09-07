@@ -20,7 +20,6 @@ class _BulkScanScreenState extends State<BulkScanScreen> {
 
   List<XFile> _selectedFiles = [];
   bool _isProcessing = false;
-  int _processedCount = 0;
   String _statusMessage = "";
 
   Map<String, dynamic>? _batchResult;
@@ -62,7 +61,6 @@ class _BulkScanScreenState extends State<BulkScanScreen> {
 
     setState(() {
       _isProcessing = true;
-      _processedCount = 0;
       _statusMessage = "Reading ${_selectedFiles.length} images...";
     });
 
@@ -117,7 +115,6 @@ class _BulkScanScreenState extends State<BulkScanScreen> {
     final passedCount = _batchResult?['passed_count'] ?? 0;
     final failedCount = _batchResult?['failed_count'] ?? 0;
     final reviewCount = _batchResult?['review_count'] ?? 0;
-    final rate = _batchResult?['batch_compliance_rate'] ?? '0%';
 
     return Scaffold(
       appBar: AppBar(
