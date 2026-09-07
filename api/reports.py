@@ -241,27 +241,83 @@ def generate_bulk_batch_pdf(batch_data: Dict[str, Any], output_path: str) -> str
     # Individual Product Breakdown Pages
     pdf.add_page()
     pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 8, "Detailed Individual Product Label Breakdown", ln=True)
+    pdf.cell(0, 8, "Detailed Individual Product Label Breakdown & Country Comparison", ln=True)
     pdf.ln(4)
 
     for idx, r in enumerate(reports):
         fn = r.get("filename", f"Item_{idx+1}.png")
         v_title = r.get("verdict_title", r.get("overall_status", "REVIEW"))
+        v_status = r.get("overall_status", "REVIEW")
+        score = r.get("compliance_score", 0.0)
         justs = r.get("failure_justifications", [])
+        intl = r.get("international_alignment", {})
+        jurisdictions = intl.get("jurisdictions", {}) if isinstance(intl, dict) else {}
 
+        # Product Header Box
         pdf.set_font("Arial", "B", 10)
-        pdf.cell(0, 6, f"Product #{idx+1}: {fn} - [{v_title}]", ln=True)
-        pdf.set_font("Arial", "", 9)
+        pdf.set_fill_color(235, 240, 248)
+        pdf.cell(0, 7, f"  Product #{idx+1}: {fn} | Score: {score:.1f}%", ln=True, fill=True)
+        pdf.ln(2)
+
+        # Product Verdict Status
+        if v_status == "APPROVED" or "GOOD" in v_title.upper():
+            pdf.set_text_color(0, 120, 50)
+            verdict_text = "[PASS] Verdict: GOOD PRODUCT (Compliant with Legal Metrology)"
+        elif v_status == "REJECTED" or "BAD" in v_title.upper():
+            pdf.set_text_color(180, 20, 20)
+            verdict_text = "[FAIL] Verdict: BAD PRODUCT (Statutory Violations Detected)"
+        else:
+            pdf.set_text_color(160, 100, 0)
+            verdict_text = "[REVIEW] Verdict: ENFORCEMENT REVIEW REQUIRED"
+
+        pdf.set_font("Arial", "B", 9)
+        pdf.cell(0, 5, verdict_text, ln=True)
+        pdf.set_text_color(0, 0, 0)
+        pdf.ln(2)
+
+        # Statutory Guideline Justifications
+        pdf.set_font("Arial", "B", 9)
+        pdf.cell(0, 5, "Statutory Guideline Justifications:", ln=True)
+        pdf.set_font("Arial", "", 8)
 
         if justs:
             pdf.set_text_color(180, 20, 20)
             for j in justs:
-                pdf.multi_cell(0, 4, f"  - {j.get('rule_id', '')}: {j.get('description', '')}")
+                rule_id = j.get('rule_id', '')
+                desc = j.get('description', '')
+                pdf.multi_cell(0, 4, f"  - [{rule_id} FAILED]: {desc}")
             pdf.set_text_color(0, 0, 0)
         else:
-            pdf.cell(0, 5, "  - All statutory declarations pass PCR 2011 rules.", ln=True)
+            pdf.set_text_color(0, 120, 50)
+            pdf.cell(0, 4, "  - All mandatory declarations (MRP, Net Qty, Mfg Date, Address, Consumer Care) passed.", ln=True)
+            pdf.set_text_color(0, 0, 0)
 
-        pdf.ln(4)
+        pdf.ln(2)
+
+        # International Regulatory Comparison Matrix in PDF
+        if jurisdictions:
+            pdf.set_font("Arial", "B", 9)
+            pdf.cell(0, 5, "International Regulatory Comparison (India vs US FDA vs EU):", ln=True)
+            pdf.set_font("Arial", "B", 8)
+            pdf.set_fill_color(240, 240, 240)
+            pdf.cell(35, 5, "Country / Region", border=1, fill=True)
+            pdf.cell(70, 5, "Standard", border=1, fill=True)
+            pdf.cell(25, 5, "Status", border=1, fill=True)
+            pdf.cell(55, 5, "Harmonization Justification", border=1, fill=True, ln=True)
+
+            pdf.set_font("Arial", "", 7)
+            for c_name, c_data in jurisdictions.items():
+                c_label = c_name.replace("_", " ")
+                reg = str(c_data.get("regulation", ""))[:40]
+                st = str(c_data.get("status", ""))[:15]
+                just = str(c_data.get("justification", ""))[:35]
+
+                pdf.cell(35, 5, c_label, border=1)
+                pdf.cell(70, 5, reg, border=1)
+                pdf.cell(25, 5, st, border=1)
+                pdf.cell(55, 5, just, border=1, ln=True)
+
+        pdf.ln(6)
 
     pdf.output(output_path)
     return output_path

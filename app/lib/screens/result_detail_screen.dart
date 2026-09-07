@@ -225,7 +225,7 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> with SingleTick
                     _buildImagePreview(),
                     const SizedBox(height: 16),
 
-                    // International Cross-Border Regulatory Comparison Card
+                    // PDF Country Comparison Note Card
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -233,23 +233,16 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> with SingleTick
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: const Color(0xFF3B82F6)),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: const [
-                              Text(
-                                "🌍 International Regulatory Alignment Matrix",
-                                style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                              ),
-                              Text("India • US FDA • EU 1169", style: TextStyle(color: Color(0xFF3B82F6), fontSize: 10, fontWeight: FontWeight.bold)),
-                            ],
+                      child: Row(
+                        children: const [
+                          Icon(Icons.picture_as_pdf_rounded, color: Color(0xFF3B82F6), size: 22),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              "International Country Comparison (India vs US FDA vs EU) is generated exclusively inside the PDF report.",
+                              style: TextStyle(color: Colors.white70, fontSize: 12),
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          _buildJurisdictionRow("🇮🇳 India (PCR 2011)", "COMPLIANT", "Net Qty in SI units, Mfg Address & Date present.", Colors.green),
-                          _buildJurisdictionRow("🇺🇸 United States (FDA)", "ACTION REQ.", "Requires dual net qty in US Customary (oz/lb) & Metric (g/kg).", Colors.orange),
-                          _buildJurisdictionRow("🇪🇺 European Union (EU)", "COMPLIANT", "Metric SI units compliant. Minimum font height 1.2mm requirement.", Colors.green),
                         ],
                       ),
                     ),
