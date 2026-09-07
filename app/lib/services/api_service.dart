@@ -3,14 +3,36 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/inspection_model.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class ApiService {
   static String baseUrl = 'http://127.0.0.1:8000'; // Default host
 
-  static void setBaseUrl(String url) {
+  /// Load persisted server IP address from SharedPreferences on app launch
+  static Future<void> loadSavedBaseUrl() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedUrl = prefs.getString('labelsure_server_url');
+      if (savedUrl != null && savedUrl.isNotEmpty) {
+        baseUrl = savedUrl;
+      }
+    } catch (e) {
+      debugPrint("Error loading saved server URL: $e");
+    }
+  }
+
+  /// Update and save server IP address persistently across app restarts
+  static Future<void> setBaseUrl(String url) async {
     if (url.endsWith('/')) {
       baseUrl = url.substring(0, url.length - 1);
     } else {
       baseUrl = url;
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('labelsure_server_url', baseUrl);
+    } catch (e) {
+      debugPrint("Error saving server URL: $e");
     }
   }
 

@@ -418,3 +418,69 @@ def compute_overall_verdict(findings: List[Finding]) -> Dict[str, Any]:
         "failure_justifications": failure_justifications
     }
 
+
+def evaluate_international_alignment(declarations: List[Declaration]) -> Dict[str, Any]:
+    """
+    Evaluates Indian package label declarations against US FDA (FPLA) and EU 1169/2011 standards.
+    Produces a cross-border regulatory harmonization matrix with detailed justifications.
+    """
+    decl_map = {d.type.value if hasattr(d.type, 'value') else str(d.type): d for d in declarations}
+
+    net_qty_decl = decl_map.get("NET_QUANTITY")
+    net_val = net_qty_decl.normalized_value.lower() if net_qty_decl else ""
+    raw_net = net_qty_decl.raw_text.lower() if net_qty_decl else ""
+    full_net_text = f"{net_val} {raw_net}"
+
+    mfg_decl = decl_map.get("MANUFACTURER")
+    date_decl = decl_map.get("MANUFACTURE_OR_PACK_DATE") or decl_map.get("MFG_DATE")
+
+    # 1. India (Legal Metrology PCR 2011 & FSSAI)
+    india_pass = bool(net_qty_decl and mfg_decl and date_decl)
+    india_status = "COMPLIANT" if india_pass else "NON-COMPLIANT"
+    india_justification = (
+        "Passes PCR 2011 Rule 6(1): Net Qty in SI units, Manufacturer address, and Mfg Date present."
+        if india_pass else
+        "Violates PCR 2011: Missing mandatory statutory declarations (Net Qty, Manufacturer, or Mfg Date)."
+    )
+
+    # 2. United States (FDA 21 CFR 101 & NIST FPLA)
+    has_us_customary = any(unit in full_net_text for unit in ["oz", "fl oz", "lb", "pound", "lbs"])
+    has_metric = any(unit in full_net_text for unit in ["g", "kg", "ml", "l"])
+    us_dual_declaration = has_us_customary and has_metric
+
+    us_status = "COMPLIANT" if us_dual_declaration else "NON-COMPLIANT (REQUIRES DUAL UNITS)"
+    us_justification = (
+        "Meets US FPLA Sec 1453(a)(2): Dual Net Quantity declared in US Customary (oz/lb) AND Metric (g/kg)."
+        if us_dual_declaration else
+        "Violates US FPLA 15 U.S.C. 1453: US FDA requires dual net quantity declaration in US Customary units (e.g. '7 oz (200g)'). Label only declares metric SI units."
+    )
+
+    # 3. European Union (EU 1169/2011 & Directive 76/211/EEC)
+    has_emark = "℮" in full_net_text or " e" in full_net_text or "e " in full_net_text
+    eu_status = "COMPLIANT" if (has_metric and mfg_decl) else "ACTION REQUIRED"
+    eu_justification = (
+        f"Meets EU 1169/2011: Mandatory particulars present in metric units. {'Includes estimated e-mark ℮.' if has_emark else 'Note: For EU export, adding the estimated e-mark ℮ symbol is recommended for average fill weight certification.'}"
+    )
+
+    return {
+        "jurisdictions": {
+            "India": {
+                "regulation": "Legal Metrology (Packaged Commodities) Rules, 2011 & FSSAI",
+                "status": india_status,
+                "justification": india_justification
+            },
+            "United_States": {
+                "regulation": "US Fair Packaging and Labeling Act (FPLA) & 21 CFR 101",
+                "status": us_status,
+                "justification": us_justification
+            },
+            "European_Union": {
+                "regulation": "EU Regulation 1169/2011 & Directive 76/211/EEC",
+                "status": eu_status,
+                "justification": eu_justification
+            }
+        },
+        "export_readiness_score": 100 if (india_pass and us_dual_declaration) else (75 if india_pass else 40)
+    }
+
+

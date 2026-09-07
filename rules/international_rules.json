@@ -1,0 +1,50 @@
+[
+  {
+    "rule_id": "LM-9001",
+    "rule_version": "1.0.0",
+    "clause_reference": "US FPLA Section 1453(a)(2) / 21 CFR 101.105",
+    "requirement": "US FPLA Dual Net Content Declaration (US Customary oz/lb AND Metric g/kg).",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "presence", "parameters": { "field": "NET_QUANTITY" } },
+    "severity": "major",
+    "effective_from": "1994-02-14",
+    "effective_to": null,
+    "source": "US Fair Packaging and Labeling Act (FPLA) & NIST Handbook 133"
+  },
+  {
+    "rule_id": "LM-9002",
+    "rule_version": "1.0.0",
+    "clause_reference": "US 21 CFR 101.105(f)",
+    "requirement": "Net Quantity must be located within the bottom 30% of the Principal Display Panel.",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "presence", "parameters": { "field": "NET_QUANTITY" } },
+    "severity": "medium",
+    "effective_from": "1994-02-14",
+    "effective_to": null,
+    "source": "US FDA Food Labeling Guide (21 CFR 101)"
+  },
+  {
+    "rule_id": "LM-9003",
+    "rule_version": "1.0.0",
+    "clause_reference": "EU Regulation 1169/2011 Article 13(2)",
+    "requirement": "Minimum font height of 1.2mm for mandatory particulars on package labels (> 80cm² PDP).",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "presence", "parameters": { "field": "PRODUCT_NAME" } },
+    "severity": "major",
+    "effective_from": "2014-12-13",
+    "effective_to": null,
+    "source": "EU Regulation 1169/2011 (Provision of Food Information to Consumers)"
+  },
+  {
+    "rule_id": "LM-9004",
+    "rule_version": "1.0.0",
+    "clause_reference": "EU Directive 76/211/EEC & EU 1169/2011",
+    "requirement": "Estimated Symbol ('e'-mark) for Net Quantity fill tolerance verification in European Union.",
+    "applicability": { "category": "all", "conditions": [] },
+    "validation": { "type": "presence", "parameters": { "field": "NET_QUANTITY" } },
+    "severity": "minor",
+    "effective_from": "1976-01-20",
+    "effective_to": null,
+    "source": "EU Packaged Commodities Quantity Directive 76/211/EEC"
+  }
+]

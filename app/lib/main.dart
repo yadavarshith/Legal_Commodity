@@ -7,9 +7,12 @@ import 'screens/rules_library_screen.dart';
 import 'main_webview.dart';
 import 'services/storage_service.dart';
 
+import 'services/api_service.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await StorageService.init();
+  await ApiService.loadSavedBaseUrl();
   runApp(const LabelSureApp());
 }
 

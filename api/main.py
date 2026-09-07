@@ -101,7 +101,7 @@ async def upload_and_scan_label(
     """
     from .processing.ocr import extract_text
     from .processing.image import annotate_image_with_bboxes
-    from .engine import RuleEngine, compute_overall_verdict
+    from .engine import RuleEngine, compute_overall_verdict, evaluate_international_alignment
 
     # Save uploaded file
     file_ext = Path(file.filename).suffix or ".png"
@@ -136,7 +136,7 @@ async def upload_and_scan_label(
         logger.error("[TRACE Stage 3 ERROR] Declaration extractor failed: %s", e)
         declarations = []
 
-    # Stage 4: Rule Evaluation
+    # Stage 4: Rule Evaluation & International Cross-Border Comparison
     context = ProductContext(
         category=category,
         package_type=package_type,
@@ -150,6 +150,12 @@ async def upload_and_scan_label(
     except Exception as e:
         logger.error("[TRACE Stage 4 ERROR] Rule engine evaluation failed: %s", e)
         findings = []
+
+    try:
+        international_matrix = evaluate_international_alignment(declarations)
+    except Exception as e:
+        logger.error("International alignment evaluation failed: %s", e)
+        international_matrix = {}
 
     # Stage 5: Draw Bounding Box Highlights on Image
     annotated_filename = f"annotated_{unique_name}"
@@ -192,6 +198,7 @@ async def upload_and_scan_label(
         "compliance_score": verdict["compliance_score"],
         "verdict_summary": verdict["summary"],
         "failure_justifications": verdict["failure_justifications"],
+        "international_alignment": international_matrix,
         "annotated_bboxes": annotated_bboxes
     }
 
@@ -244,7 +251,7 @@ async def upload_bulk_labels(
     total_scanned = len(reports)
     batch_status = "APPROVED" if failed_count == 0 and review_count == 0 else ("REJECTED" if failed_count > 0 else "REVIEW")
 
-    return {
+    batch_payload = {
         "batch_id": batch_id,
         "organization_name": organization_name,
         "total_scanned": total_scanned,
@@ -255,6 +262,19 @@ async def upload_bulk_labels(
         "batch_compliance_rate": f"{round((passed_count / total_scanned * 100), 1)}%" if total_scanned > 0 else "100%",
         "reports": reports
     }
+
+    # Generate single consolidated PDF report for the entire bulk batch
+    try:
+        from .reports import generate_bulk_batch_pdf
+        pdf_filename = f"consolidated_bulk_{batch_id}.pdf"
+        pdf_save_path = uploads_dir / pdf_filename
+        generate_bulk_batch_pdf(batch_payload, str(pdf_save_path))
+        batch_payload["bulk_pdf_url"] = f"/uploads/{pdf_filename}"
+    except Exception as e:
+        logger.error("Failed to generate bulk PDF: %s", e)
+        batch_payload["bulk_pdf_url"] = ""
+
+    return batch_payload
 
 
 @app.get("/")

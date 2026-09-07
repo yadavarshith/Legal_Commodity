@@ -292,28 +292,54 @@ class _BulkScanScreenState extends State<BulkScanScreen> {
 
             // Step 3: Aggregated Organization Batch Dashboard (Results)
             if (_batchResult != null) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Batch Results: ${_batchResult!['batch_id']}",
-                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF10B981)),
+              // Consolidated Bulk PDF Export Banner
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF00E5FF)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Batch ID: ${_batchResult!['batch_id']}",
+                            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            "Organization: ${_batchResult!['organization_name'] ?? _orgController.text}",
+                            style: const TextStyle(color: Colors.grey, fontSize: 11),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Text(
-                      "Compliance Rate: $rate",
-                      style: const TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 12),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        if (_batchReports.isNotEmpty) {
+                          PdfGeneratorService.exportCompliancePdf(
+                            _batchReports.first,
+                            organizationName: _orgController.text.trim(),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.picture_as_pdf_rounded, color: Colors.black, size: 18),
+                      label: const Text("Export Consolidated Bulk PDF", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF00E5FF),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
 
               // Summary Metric Cards Grid
               Row(

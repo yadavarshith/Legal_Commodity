@@ -364,7 +364,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (res.ok) {
           const data = await res.json();
-          bulkStatusText.innerText = `Batch ${data.batch_id} complete for "${data.organization_name}". Total Scanned: ${data.total_scanned}.`;
+          const pdfBtnHtml = data.bulk_pdf_url ? `<a href="${data.bulk_pdf_url}" target="_blank" class="btn-primary" style="display: inline-block; margin-top: 8px; padding: 6px 12px; text-decoration: none;"><i class="fa-solid fa-file-pdf"></i> 📄 Download Consolidated Bulk Batch PDF Report</a>` : '';
+          bulkStatusText.innerHTML = `Batch ${data.batch_id} complete for "${data.organization_name}". Total Scanned: ${data.total_scanned}. ${pdfBtnHtml}`;
 
           document.getElementById('bulk-total-scanned').innerText = data.total_scanned;
           document.getElementById('bulk-passed-count').innerText = data.passed_count;

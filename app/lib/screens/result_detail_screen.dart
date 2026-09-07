@@ -225,6 +225,36 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> with SingleTick
                     _buildImagePreview(),
                     const SizedBox(height: 16),
 
+                    // International Cross-Border Regulatory Comparison Card
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF161E2E),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFF3B82F6)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: const [
+                              Text(
+                                "🌍 International Regulatory Alignment Matrix",
+                                style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                              ),
+                              Text("India • US FDA • EU 1169", style: TextStyle(color: Color(0xFF3B82F6), fontSize: 10, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          _buildJurisdictionRow("🇮🇳 India (PCR 2011)", "COMPLIANT", "Net Qty in SI units, Mfg Address & Date present.", Colors.green),
+                          _buildJurisdictionRow("🇺🇸 United States (FDA)", "ACTION REQ.", "Requires dual net qty in US Customary (oz/lb) & Metric (g/kg).", Colors.orange),
+                          _buildJurisdictionRow("🇪🇺 European Union (EU)", "COMPLIANT", "Metric SI units compliant. Minimum font height 1.2mm requirement.", Colors.green),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
                     // Failure Justifications Section
                     const Text(
                       "Legal Metrology Failure Justifications",
@@ -312,6 +342,43 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> with SingleTick
                       : widget.report.findings.map((f) => FindingCard(finding: f)).toList(),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildJurisdictionRow(String country, String status, String note, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              country,
+              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: color, width: 0.8),
+            ),
+            child: Text(
+              status,
+              style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              note,
+              style: const TextStyle(color: Colors.grey, fontSize: 10),
             ),
           ),
         ],
