@@ -1,73 +1,169 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
+import 'package:webview_flutter/webview_flutter.dart';
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const LabelSureApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class LabelSureApp extends StatelessWidget {
+  const LabelSureApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: 'LabelSure Inspector', home: const InspectionScreen());
+    return MaterialApp(
+      title: 'APEX — LabelSure',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: const Color(0xFF0B0F19),
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFF00E5FF),
+          secondary: Color(0xFF10B981),
+          surface: Color(0xFF161E2E),
+        ),
+      ),
+      home: const WebAppHomeScreen(),
+    );
   }
 }
 
-class InspectionScreen extends StatefulWidget {
-  const InspectionScreen({super.key});
+class WebAppHomeScreen extends StatefulWidget {
+  const WebAppHomeScreen({super.key});
 
   @override
-  State<InspectionScreen> createState() => _InspectionScreenState();
+  State<WebAppHomeScreen> createState() => _WebAppHomeScreenState();
 }
 
-class _InspectionScreenState extends State<InspectionScreen> {
-  final ImagePicker _picker = ImagePicker();
-  XFile? _frontImage;
-  XFile? _backImage;
-  String _result = "Press submit to inspect";
+class _WebAppHomeScreenState extends State<WebAppHomeScreen> {
+  late final WebViewController _controller;
+  bool _isLoading = true;
+  String _serverUrl = 'http://10.0.2.2:8000'; // Default Android Emulator host IP
 
-  Future<void> _pickImage(bool front) async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
-    if (image != null) {
-      setState(() {
-        if (front) _frontImage = image; else _backImage = image;
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (url) => setState(() => _isLoading = false),
+          onWebResourceError: (error) {
+            debugPrint("WebView error: ${error.description}");
+          },
+        ),
+      );
+
+    _loadApp();
   }
 
-  Future<void> _submit() async {
-    setState(() => _result = "Inspecting...");
+  void _loadApp() {
+    setState(() => _isLoading = true);
+    // Load local bundled web application HTML/CSS/JS assets inside APK
+    _controller.loadFlutterAsset('assets/www/index.html');
+  }
 
-    // Note: use 10.0.2.2 for Android emulator
-    final url = Uri.parse('http://10.0.2.2:8000/inspections');
-    try {
-      final response = await http.post(
-        url,
-        headers: {'X-API-Key': 'dev-key', 'Content-Type': 'application/json'},
-      );
-      if (response.statusCode == 200) {
-        setState(() => _result = "Result: ${response.body}");
-      } else {
-        setState(() => _result = "Error: ${response.statusCode} - ${response.body}");
-      }
-    } catch (e) {
-      setState(() => _result = "Exception: $e");
-    }
+  void _showSettingsDialog() {
+    final controller = TextEditingController(text: _serverUrl);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF161E2E),
+        title: const Text("Backend Host Settings", style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Set the backend API host server URL:",
+              style: TextStyle(color: Colors.grey, fontSize: 13),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: controller,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: "http://10.0.2.2:8000 or http://192.168.x.x:8000",
+                hintStyle: TextStyle(color: Colors.grey),
+              ),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: () {
+                final url = controller.text.trim();
+                if (url.isNotEmpty) {
+                  setState(() => _serverUrl = url);
+                  _controller.loadRequest(Uri.parse(url));
+                  Navigator.pop(ctx);
+                }
+              },
+              icon: const Icon(Icons.public, color: Colors.black),
+              label: const Text("Connect to Remote Backend Server", style: TextStyle(color: Colors.black)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00E5FF),
+                minimumSize: const Size(double.infinity, 44),
+              ),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () {
+                _loadApp();
+                Navigator.pop(ctx);
+              },
+              icon: const Icon(Icons.phone_android, color: Color(0xFF10B981)),
+              label: const Text("Load Bundled Local App", style: TextStyle(color: Colors.white)),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 44),
+                side: const BorderSide(color: Color(0xFF10B981)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("LabelSure")),
-      body: Column(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF111827),
+        elevation: 0,
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF00E5FF).withOpacity(0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.verified_rounded, color: Color(0xFF00E5FF), size: 20),
+            ),
+            const SizedBox(width: 10),
+            const Text(
+              'APEX — LabelSure',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
+            onPressed: () => _controller.reload(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_rounded, color: Colors.white70),
+            onPressed: _showSettingsDialog,
+          ),
+        ],
+      ),
+      body: Stack(
         children: [
-          ElevatedButton(onPressed: () => _pickImage(true), child: Text(_frontImage == null ? "Capture Front" : "Front Captured")),
-          ElevatedButton(onPressed: () => _pickImage(false), child: Text(_backImage == null ? "Capture Back" : "Back Captured")),
-          ElevatedButton(onPressed: _submit, child: const Text("Submit Inspection")),
-          Expanded(child: SingleChildScrollView(child: Text(_result))),
+          WebViewWidget(controller: _controller),
+          if (_isLoading)
+            const Center(
+              child: CircularProgressIndicator(color: Color(0xFF00E5FF)),
+            ),
         ],
       ),
     );
