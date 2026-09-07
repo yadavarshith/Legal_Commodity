@@ -91,7 +91,7 @@ class _BulkScanScreenState extends State<BulkScanScreen> {
 
       final List<InspectionReport> reports = result['reports'] ?? [];
       for (final r in reports) {
-        await StorageService.saveInspection(r);
+        await StorageService.saveReport(r);
       }
 
       setState(() {

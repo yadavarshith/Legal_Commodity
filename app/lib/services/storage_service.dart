@@ -60,6 +60,9 @@ class StorageService {
     await _persist();
   }
 
+  /// Alias for saveReport
+  static Future<void> saveInspection(InspectionReport report) => saveReport(report);
+
   /// Delete a report from local memory storage
   static Future<void> deleteReport(String inspectionId) async {
     await init();
