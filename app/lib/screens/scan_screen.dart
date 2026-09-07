@@ -145,7 +145,10 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "Set the backend host URL (FastAPI OCR server):",
+              "Set your PC's IP address on Wi-Fi (FastAPI OCR server):\n\n"
+              "• Physical Phone: http://<YOUR_PC_WIFI_IP>:8000 (e.g., http://192.168.31.112:8000)\n"
+              "• Android Emulator: http://10.0.2.2:8000\n"
+              "• Web Browser / Local: http://127.0.0.1:8000",
               style: TextStyle(color: Colors.grey, fontSize: 12),
             ),
             const SizedBox(height: 10),
@@ -154,7 +157,7 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
               style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                hintText: "http://127.0.0.1:8000 or http://10.0.2.2:8000",
+                hintText: "http://192.168.31.112:8000",
                 hintStyle: TextStyle(color: Colors.grey),
               ),
             ),
