@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/scan_screen.dart';
+import 'screens/bulk_scan_screen.dart';
 import 'screens/repository_screen.dart';
 import 'screens/rules_library_screen.dart';
 import 'main_webview.dart';
@@ -64,9 +65,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     final screens = [
       DashboardScreen(
         onStartScan: () => _navigateToTab(1),
-        onViewRepository: () => _navigateToTab(2),
+        onViewRepository: () => _navigateToTab(3),
       ),
       const ScanScreen(),
+      const BulkScanScreen(),
       const RepositoryScreen(),
       const RulesLibraryScreen(),
       const WebAppWebViewScreen(),
@@ -84,8 +86,8 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
         backgroundColor: const Color(0xFF111827),
         selectedItemColor: const Color(0xFF00E5FF),
         unselectedItemColor: Colors.grey.shade500,
-        selectedFontSize: 11,
-        unselectedFontSize: 11,
+        selectedFontSize: 10,
+        unselectedFontSize: 10,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard_rounded),
@@ -93,7 +95,11 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.document_scanner_rounded),
-            label: 'Scan Label',
+            label: 'Single Scan',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.collections_rounded),
+            label: 'Bulk Audit',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.folder_special_rounded),
@@ -101,7 +107,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.gavel_rounded),
-            label: 'Rules Library',
+            label: 'Rules',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.web_rounded),

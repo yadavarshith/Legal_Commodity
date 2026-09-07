@@ -92,13 +92,16 @@ async def upload_and_scan_label(
     file: UploadFile = File(...),
     category: str = Form("all"),
     package_type: str = Form("pre-packaged"),
-    import_status: str = Form("domestic")
+    import_status: str = Form("domestic"),
+    organization_name: str = Form("General Public / Retail Audit")
 ):
     """
     Accept an uploaded package label image file, run OCR, extract Legal Metrology declarations,
-    and evaluate compliance against PCR 2011 & Legal Metrology Act, 2009.
+    render color-coded bounding box highlights, evaluate compliance, and return dynamic verdict.
     """
     from .processing.ocr import extract_text
+    from .processing.image import annotate_image_with_bboxes
+    from .engine import RuleEngine, compute_overall_verdict
 
     # Save uploaded file
     file_ext = Path(file.filename).suffix or ".png"
@@ -125,10 +128,6 @@ async def upload_and_scan_label(
         ocr_results = []
     
     logger.info("[TRACE Stage 2: OCR Output] Extracted %d raw text blocks from image", len(ocr_results))
-    for idx, b in enumerate(ocr_results[:5]):
-        logger.info("   Block %d: text='%s' | bbox=%s | conf=%.2f", idx + 1, b.get('text'), b.get('bbox'), b.get('confidence', 0))
-    if len(ocr_results) > 5:
-        logger.info("   ... and %d more text blocks", len(ocr_results) - 5)
 
     # Stage 3: Declaration Extraction
     try:
@@ -136,10 +135,6 @@ async def upload_and_scan_label(
     except Exception as e:
         logger.error("[TRACE Stage 3 ERROR] Declaration extractor failed: %s", e)
         declarations = []
-
-    logger.info("[TRACE Stage 3: Declarations] Extracted %d structured declarations", len(declarations))
-    for d in declarations:
-        logger.info("   Decl [%s]: normalized='%s' (raw='%s', conf=%.2f)", d.type.value, d.normalized_value, d.raw_text, d.confidence)
 
     # Stage 4: Rule Evaluation
     context = ProductContext(
@@ -156,27 +151,109 @@ async def upload_and_scan_label(
         logger.error("[TRACE Stage 4 ERROR] Rule engine evaluation failed: %s", e)
         findings = []
 
-    logger.info("[TRACE Stage 4: Rule Evaluation] Evaluated %d rules against declarations", len(findings))
-    for f in findings:
-        logger.info("   Finding [%s | %s]: status=%s | desc='%s'", f.finding_id, f.rule_id, f.status.value, f.description)
+    # Stage 5: Draw Bounding Box Highlights on Image
+    annotated_filename = f"annotated_{unique_name}"
+    annotated_save_path = uploads_dir / annotated_filename
+    try:
+        annotated_bboxes = annotate_image_with_bboxes(
+            str(save_path),
+            str(annotated_save_path),
+            ocr_results,
+            declarations,
+            findings
+        )
+        annotated_image_url = f"/uploads/{annotated_filename}"
+    except Exception as e:
+        logger.error("Bounding box annotation failed: %s", e)
+        annotated_bboxes = []
+        annotated_image_url = image_url
 
-    # Stage 5: Results / Overall Status Rendering
-    has_fail = any(f.status == FindingStatus.FAIL for f in findings)
-    overall_status = InspectionStatus.REVIEW if has_fail else InspectionStatus.APPROVED
+    # Stage 6: Dynamic Verdict Calculation
+    verdict = compute_overall_verdict(findings)
     inspection_id = f"INS-{os.urandom(3).hex().upper()}"
 
-    logger.info("[TRACE Stage 5: Render Response] inspection_id='%s' | overall_status='%s'", inspection_id, overall_status.value)
+    logger.info("[TRACE Stage 6: Verdict] inspection_id='%s' | verdict='%s' | score=%.1f%%",
+                inspection_id, verdict["verdict_title"], verdict["compliance_score"])
     logger.info("==========================================================")
 
     return {
         "inspection_id": inspection_id,
+        "organization_name": organization_name,
         "image_url": image_url,
+        "annotated_image_url": annotated_image_url,
         "filename": file.filename,
         "context": context.model_dump(),
         "ocr_results": ocr_results,
         "declarations": [d.model_dump() for d in declarations],
         "findings": [f.model_dump() for f in findings],
-        "overall_status": overall_status.value
+        "overall_status": verdict["status"],
+        "verdict_title": verdict["verdict_title"],
+        "verdict_badge": verdict["verdict_badge"],
+        "compliance_score": verdict["compliance_score"],
+        "verdict_summary": verdict["summary"],
+        "failure_justifications": verdict["failure_justifications"],
+        "annotated_bboxes": annotated_bboxes
+    }
+
+
+@app.post("/upload-bulk")
+async def upload_bulk_labels(
+    files: List[UploadFile] = File(...),
+    organization_name: str = Form("General Public / Retail Audit"),
+    category: str = Form("all"),
+    package_type: str = Form("pre-packaged"),
+    import_status: str = Form("domestic")
+):
+    """
+    Bulk Upload Module:
+    Accepts 10+ package label images, prompts for Organization Name, processes each through OCR
+    + Rule Engine + Bounding Box Annotator, and returns an aggregated batch compliance report.
+    """
+    batch_id = f"BATCH-{os.urandom(3).hex().upper()}"
+    reports = []
+
+    passed_count = 0
+    failed_count = 0
+    review_count = 0
+
+    logger.info("Starting Bulk Batch Scan '%s' for Organization '%s' (%d images)",
+                batch_id, organization_name, len(files))
+
+    for idx, f in enumerate(files):
+        try:
+            report = await upload_and_scan_label(
+                file=f,
+                category=category,
+                package_type=package_type,
+                import_status=import_status,
+                organization_name=organization_name
+            )
+            reports.append(report)
+
+            status = report.get("overall_status", "APPROVED")
+            if status == "APPROVED":
+                passed_count += 1
+            elif status == "REJECTED":
+                failed_count += 1
+            else:
+                review_count += 1
+
+        except Exception as exc:
+            logger.error("Bulk upload item #%d (%s) failed: %s", idx + 1, f.filename, exc)
+
+    total_scanned = len(reports)
+    batch_status = "APPROVED" if failed_count == 0 and review_count == 0 else ("REJECTED" if failed_count > 0 else "REVIEW")
+
+    return {
+        "batch_id": batch_id,
+        "organization_name": organization_name,
+        "total_scanned": total_scanned,
+        "passed_count": passed_count,
+        "failed_count": failed_count,
+        "review_count": review_count,
+        "overall_batch_status": batch_status,
+        "batch_compliance_rate": f"{round((passed_count / total_scanned * 100), 1)}%" if total_scanned > 0 else "100%",
+        "reports": reports
     }
 
 

@@ -9,7 +9,7 @@ import json
 import logging
 import re
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from schemas.rule_config import RuleConfig
 from schemas.declaration import Declaration, DeclarationType
 from schemas.finding import Finding, FindingStatus, EvidenceItem
@@ -330,8 +330,6 @@ class RuleEngine:
                     ))
 
             # ---------------------------------------------------------
-            # Fallback for Generic / Custom Rules Loaded from JSON
-            # ---------------------------------------------------------
             else:
                 if decl and decl.normalized_value:
                     findings.append(Finding(
@@ -354,3 +352,69 @@ class RuleEngine:
                     ))
 
         return findings
+
+
+def compute_overall_verdict(findings: List[Finding]) -> Dict[str, Any]:
+    """
+    Computes a dynamic, rule-weighted compliance verdict for a package label:
+    - APPROVED ("GOOD PRODUCT — Compliant with Legal Metrology Standards")
+    - REJECTED ("BAD PRODUCT — Legal Metrology Guidelines Violated")
+    - REVIEW   ("NEEDS ENFORCEMENT REVIEW")
+    """
+    # Count applicable (non-N/A) findings
+    applicable_findings = [f for f in findings if f.status != FindingStatus.NOT_APPLICABLE and f.rule_id != "LM-0016"]
+    if not applicable_findings:
+        return {
+            "status": "APPROVED",
+            "verdict_title": "GOOD PRODUCT (COMPLIANT)",
+            "verdict_badge": "PASS",
+            "compliance_score": 100.0,
+            "summary": "All statutory declarations pass Legal Metrology (Packaged Commodities) Rules, 2011.",
+            "failure_justifications": []
+        }
+
+    fails = [f for f in applicable_findings if f.status == FindingStatus.FAIL]
+    passes = [f for f in applicable_findings if f.status == FindingStatus.PASS]
+    uncertains = [f for f in applicable_findings if f.status == FindingStatus.UNCERTAIN]
+
+    total = len(applicable_findings)
+    score = (len(passes) / total) * 100.0 if total > 0 else 100.0
+
+    # Critical mandatory fields that cause immediate REJECTED / BAD PRODUCT verdict if failed
+    critical_rules = ["LM-0001", "LM-0002", "LM-0004", "LM-0006", "LM-0005"]
+    has_critical_fail = any(f.rule_id in critical_rules for f in fails)
+
+    # Detailed human-readable failure justifications
+    failure_justifications = []
+    for f in fails:
+        failure_justifications.append({
+            "rule_id": f.rule_id,
+            "description": f.description,
+            "justification": f"Violates Rule {f.rule_id}: {f.description}"
+        })
+
+    if has_critical_fail or len(fails) >= 2 or score < 65.0:
+        overall_status = "REJECTED"
+        verdict_title = "BAD PRODUCT (NON-COMPLIANT)"
+        verdict_badge = "FAIL"
+        summary = f"FAIL: Product package violates {len(fails)} statutory Legal Metrology rules. Enforcement action recommended under Section 36(1) of LM Act, 2009."
+    elif len(fails) == 1 or len(uncertains) >= 2:
+        overall_status = "REVIEW"
+        verdict_title = "NEEDS ENFORCEMENT REVIEW"
+        verdict_badge = "REVIEW"
+        summary = f"REVIEW REQUIRED: Product has {len(fails)} minor declaration non-compliance. Verification required by Legal Metrology Inspector."
+    else:
+        overall_status = "APPROVED"
+        verdict_title = "GOOD PRODUCT (COMPLIANT)"
+        verdict_badge = "PASS"
+        summary = f"COMPLIANT: Product meets {len(passes)}/{total} applicable Legal Metrology declaration standards."
+
+    return {
+        "status": overall_status,
+        "verdict_title": verdict_title,
+        "verdict_badge": verdict_badge,
+        "compliance_score": round(score, 1),
+        "summary": summary,
+        "failure_justifications": failure_justifications
+    }
+

@@ -32,7 +32,10 @@
     <div class="header-center">
       <nav class="nav-tabs">
         <button class="nav-tab active" data-tab="tab-workbench">
-          <i class="fa-solid fa-microscope"></i> Package Inspection
+          <i class="fa-solid fa-microscope"></i> Single Scan
+        </button>
+        <button class="nav-tab" data-tab="tab-bulk">
+          <i class="fa-solid fa-layer-group"></i> Bulk Audit Module
         </button>
         <button class="nav-tab" data-tab="tab-audit">
           <i class="fa-solid fa-clipboard-check"></i> Inspector Audit Log
@@ -200,8 +203,82 @@
       </div>
     </section>
 
+    <!-- TAB 2: BULK AUDIT MODULE (ORGANIZATION & 10+ IMAGES) -->
+    <section id="tab-bulk" class="tab-content">
+      <div class="section-card upload-hero-card">
+        <div class="section-title">
+          <h3><i class="fa-solid fa-layer-group"></i> Enterprise Bulk Audit Module (10+ Images Support)</h3>
+          <span class="sub-text">Specify Organization Name and audit batches of commodity package label images concurrently</span>
+        </div>
 
-    <!-- TAB 2: INSPECTOR AUDIT LOG & DECISIONS -->
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-top: 1rem;">
+          <div style="background: var(--bg-card); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--border-glow);">
+            <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+              <i class="fa-solid fa-building"></i> Organization / Business Name:
+            </label>
+            <input type="text" id="bulk-org-name" class="form-control-glow" value="Legal Metrology Enforcement Dept." placeholder="e.g. Acme Foods Pvt Ltd" style="width: 100%; margin-bottom: 1rem;">
+
+            <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+              <i class="fa-solid fa-images"></i> Select Label Images (10+ Supported):
+            </label>
+            <input type="file" id="bulk-file-input" multiple accept="image/*" class="form-control-glow" style="width: 100%; margin-bottom: 1rem;">
+
+            <button class="btn-launch-inspection" id="btn-run-bulk" style="width: 100%; background: linear-gradient(135deg, #10B981, #059669);">
+              <i class="fa-solid fa-play"></i> START BULK AUDIT SCAN
+            </button>
+          </div>
+
+          <div style="background: var(--bg-card); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--border-glow);" id="bulk-status-box">
+            <h4 style="color: var(--primary-glow); margin-bottom: 0.5rem;"><i class="fa-solid fa-chart-line"></i> Bulk Batch Audit Dashboard</h4>
+            <p style="color: var(--text-muted); font-size: 0.9rem;" id="bulk-status-text">Select multiple images and click Start Bulk Audit Scan.</p>
+            
+            <div id="bulk-metrics-cards" style="display: none; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-top: 1rem;">
+              <div style="background: #1E293B; padding: 0.75rem; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.2rem; font-weight: bold; color: #38BDF8;" id="bulk-total-scanned">0</div>
+                <div style="font-size: 0.7rem; color: #94A3B8;">Total Scanned</div>
+              </div>
+              <div style="background: #1E293B; padding: 0.75rem; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.2rem; font-weight: bold; color: #4ADE80;" id="bulk-passed-count">0</div>
+                <div style="font-size: 0.7rem; color: #94A3B8;">Good (Compliant)</div>
+              </div>
+              <div style="background: #1E293B; padding: 0.75rem; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.2rem; font-weight: bold; color: #F87171;" id="bulk-failed-count">0</div>
+                <div style="font-size: 0.7rem; color: #94A3B8;">Bad (Violated)</div>
+              </div>
+              <div style="background: #1E293B; padding: 0.75rem; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.2rem; font-weight: bold; color: #FBBF24;" id="bulk-compliance-rate">0%</div>
+                <div style="font-size: 0.7rem; color: #94A3B8;">Compliance Rate</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem;" id="bulk-results-table-container">
+          <h4>Scanned Batch Items Report</h4>
+          <table class="declarations-table" style="margin-top: 0.75rem;">
+            <thead>
+              <tr>
+                <th>Item #</th>
+                <th>Product Label</th>
+                <th>Overall Verdict</th>
+                <th>Score</th>
+                <th>Failure Justification</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="bulk-table-body">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                  No bulk scan results yet. Select images above to run batch audit.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: INSPECTOR AUDIT LOG & DECISIONS -->
     <section id="tab-audit" class="tab-content">
       <div class="section-card">
         <div class="section-title">

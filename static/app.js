@@ -243,16 +243,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const declsCount = data.declarations ? data.declarations.length : 0;
     const findCount = data.findings ? data.findings.length : 0;
 
-    if (data.overall_status === 'review' || data.overall_status === 'fail') {
-      statusBar.className = 'overall-status-bar status-review';
-      statusIcon.className = 'fa-solid fa-triangle-exclamation status-icon';
-      statusTitle.innerText = 'FLAGGED FOR INSPECTOR REVIEW';
-      statusDesc.innerText = `OCR extracted ${ocrCount} text blocks → ${declsCount} declarations matched → ${findCount} rules evaluated`;
-    } else {
+    // Display Annotated Bounding Box Image if returned
+    if (data.annotated_image_url) {
+      imageContainer.innerHTML = `
+        <div class="uploaded-canvas-wrapper" style="position: relative; max-width: 100%; display: inline-block; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-glow);">
+          <img src="${data.annotated_image_url}" alt="Annotated Label" style="display: block; max-width: 100%; max-height: 440px; object-fit: contain;" id="active-package-img">
+          <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 12px; color: #fff; font-size: 11px;">
+            🟢 Pass  🔴 Fail  🟡 Warn  🔵 Text
+          </div>
+        </div>
+      `;
+    }
+
+    const title = data.verdict_title || (data.overall_status === 'APPROVED' ? 'GOOD PRODUCT (COMPLIANT)' : 'BAD PRODUCT (NON-COMPLIANT)');
+    const status = (data.overall_status || 'REVIEW').toUpperCase();
+
+    if (status === 'APPROVED' || title.includes('GOOD')) {
       statusBar.className = 'overall-status-bar status-pass';
       statusIcon.className = 'fa-solid fa-circle-check status-icon';
-      statusTitle.innerText = 'FULLY COMPLIANT (PASS)';
-      statusDesc.innerText = `OCR extracted ${ocrCount} text blocks → ${declsCount} declarations matched → All rules passed`;
+      statusTitle.innerText = `🟢 ${title}`;
+      statusDesc.innerText = data.verdict_summary || `OCR extracted ${ocrCount} text blocks → ${declsCount} declarations matched → All rules passed`;
+    } else if (status === 'REJECTED' || title.includes('BAD')) {
+      statusBar.className = 'overall-status-bar status-review';
+      statusIcon.className = 'fa-solid fa-circle-xmark status-icon';
+      statusTitle.innerText = `🔴 ${title}`;
+      statusDesc.innerText = data.verdict_summary || `Package violates statutory Legal Metrology rules. Enforcement action required.`;
+    } else {
+      statusBar.className = 'overall-status-bar status-review';
+      statusIcon.className = 'fa-solid fa-triangle-exclamation status-icon';
+      statusTitle.innerText = `🟡 ${title}`;
+      statusDesc.innerText = data.verdict_summary || `OCR extracted ${ocrCount} text blocks → Verification required by inspector.`;
     }
 
     findingsCount.innerText = findCount;
@@ -297,6 +317,95 @@ document.addEventListener('DOMContentLoaded', () => {
         <option value="${f.finding_id}">${f.finding_id} — ${f.rule_id}: ${f.description} (${f.status})</option>
       `).join('');
     }
+  }
+
+  // Bulk Upload Module Logic
+  const btnRunBulk = document.getElementById('btn-run-bulk');
+  const bulkFileInput = document.getElementById('bulk-file-input');
+  const bulkOrgName = document.getElementById('bulk-org-name');
+  const bulkStatusText = document.getElementById('bulk-status-text');
+  const bulkMetricsCards = document.getElementById('bulk-metrics-cards');
+  const bulkTableBody = document.getElementById('bulk-table-body');
+
+  if (btnRunBulk && bulkFileInput) {
+    btnRunBulk.addEventListener('click', async () => {
+      const files = bulkFileInput.files;
+      if (!files || files.length === 0) {
+        alert('Please select at least 1 label image file for bulk audit!');
+        return;
+      }
+
+      const orgName = bulkOrgName ? bulkOrgName.value.trim() : 'General Public Audit';
+      if (!orgName) {
+        alert('Please specify Organization / Business Name!');
+        return;
+      }
+
+      btnRunBulk.disabled = true;
+      bulkStatusText.innerText = `Running Bulk Audit across ${files.length} images for "${orgName}"... Please wait.`;
+
+      const formData = new FormData();
+      formData.append('organization_name', orgName);
+      formData.append('category', 'all');
+      formData.append('package_type', 'pre-packaged');
+      formData.append('import_status', 'domestic');
+
+      for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+      }
+
+      try {
+        const res = await fetch('/upload-bulk', {
+          method: 'POST',
+          body: formData
+        });
+
+        btnRunBulk.disabled = false;
+
+        if (res.ok) {
+          const data = await res.json();
+          bulkStatusText.innerText = `Batch ${data.batch_id} complete for "${data.organization_name}". Total Scanned: ${data.total_scanned}.`;
+
+          document.getElementById('bulk-total-scanned').innerText = data.total_scanned;
+          document.getElementById('bulk-passed-count').innerText = data.passed_count;
+          document.getElementById('bulk-failed-count').innerText = data.failed_count;
+          document.getElementById('bulk-compliance-rate').innerText = data.batch_compliance_rate;
+          bulkMetricsCards.style.display = 'grid';
+
+          const reports = data.reports || [];
+          if (reports.length > 0) {
+            bulkTableBody.innerHTML = reports.map((r, idx) => {
+              const isPass = r.overall_status === 'APPROVED' || r.verdict_title.includes('GOOD');
+              const isFail = r.overall_status === 'REJECTED' || r.verdict_title.includes('BAD');
+              const badgeClass = isPass ? 'pass' : (isFail ? 'fail' : 'review');
+
+              const justs = r.failure_justifications || [];
+              const justText = justs.length > 0 ? justs.map(j => `• ${j.rule_id}: ${j.description}`).join('<br>') : '✓ Fully Compliant';
+
+              return `
+                <tr>
+                  <td><strong>#${idx + 1}</strong></td>
+                  <td><code>${escapeHtml(r.filename)}</code></td>
+                  <td><span class="badge-status ${badgeClass}">${r.verdict_title || r.overall_status}</span></td>
+                  <td><strong>${r.compliance_score}%</strong></td>
+                  <td style="font-size: 11px; color: ${isFail ? '#F87171' : '#4ADE80'};">${justText}</td>
+                  <td>
+                    <button class="btn-primary" style="padding: 4px 8px; font-size: 11px;" onclick="window.print()">
+                      <i class="fa-solid fa-file-pdf"></i> PDF
+                    </button>
+                  </td>
+                </tr>
+              `;
+            }).join('');
+          }
+        } else {
+          bulkStatusText.innerText = `Bulk Audit Failed: Server returned HTTP ${res.status}`;
+        }
+      } catch (err) {
+        btnRunBulk.disabled = false;
+        bulkStatusText.innerText = `Bulk Audit Error: ${err.message}`;
+      }
+    });
   }
 
   function formatDeclType(type) {
